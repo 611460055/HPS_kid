@@ -39,6 +39,7 @@
 #include "hand_kinetic_base.h"
 #include "IMU_base_obs.h"
 #include "Feedback_Motor.h"
+#include "leg_ik.h"
 //#include "inc\WalkingGait.h"
 /********************************************************/
 
@@ -53,6 +54,8 @@ BalanceControl balance;
 Hand_InverseKinematic HandIK;
 IMU_base_obs IB;
 WalkingGaitByLIPM walkingGaitByLIPM;
+LegInverseKinematic LIK;
+LegTrajectory LT;
 
 struct timeval tstart, tend;
 double timeuse;

@@ -54,6 +54,7 @@ int main()
 				IK.initial_inverse_kinematic();
 				walkinggait.final_step();
 				locus.get_end_point();  //獲取末端點
+				LIK.stand();
 				IK.calculate_inverse_kinematic(30); //計算逆運動學
 				walkinggait.if_finish_ = false;
 				datamodule.stand_flag = false;
@@ -138,6 +139,14 @@ int main()
 			walkinggait.walking_timer();  
 			walkinggait.pushData();
 
+			if(!walkinggait.locus_flag_ && LT.start)
+			{
+				locus.get_end_point();
+				IK.calculate_inverse_kinematic(walkinggait.motion_delay_); //計算逆運動學
+				locus.do_motion();
+				LT.start = false;
+			}
+
 			gettimeofday(&walkinggait.timer_start_, NULL);
 			// balance.balance_control();
 		}
@@ -192,9 +201,9 @@ int main()
 				balance.balance_control();	// 平衡控制(sensor_set)
 			}
 			// locus.get_cpg_with_offset();  //獲取末端點
-			locus.get_end_point();
-			IK.calculate_inverse_kinematic(walkinggait.motion_delay_); //計算逆運動學
-			locus.do_motion();
+			// locus.get_end_point();
+			// IK.calculate_inverse_kinematic(walkinggait.motion_delay_); //計算逆運動學
+			// locus.do_motion();
 
 
 

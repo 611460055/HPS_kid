@@ -11,6 +11,8 @@ extern Walkinggait walkinggait;
 extern Datamodule datamodule;
 extern BalanceControl balance;
 extern kickgait_space::KickingGait kickinggait;
+extern LegInverseKinematic LIK;
+extern LegTrajectory LT;
 
 Locus::Locus()
 {
@@ -172,11 +174,34 @@ InverseKinematic::InverseKinematic()
 	rotate_body_l_ = 0.0;
 	flag_ = false;
 
+	// 待測試
+	pre_output_angle_[0] = 3448;
+	pre_output_angle_[1] = 1948;
+	pre_output_angle_[2] = 2048;
+	pre_output_angle_[3] = 2748;
+	pre_output_angle_[4] = 648;
+	pre_output_angle_[5] = 2148;
+	pre_output_angle_[6] = 2048;
+	pre_output_angle_[7] = 1348;
+	pre_output_angle_[8] = 2028;
+	pre_output_angle_[9] = 2048;
+	pre_output_angle_[10] = 2028;
+	pre_output_angle_[11] = 1868;
+	pre_output_angle_[12] = 2078;
+	pre_output_angle_[13] = 2058;
+	pre_output_angle_[14] = 2033;
+	pre_output_angle_[15] = 2048;
+	pre_output_angle_[16] = 2078;
+	pre_output_angle_[17] = 2220;
+	pre_output_angle_[18] = 2023;
+	pre_output_angle_[19] = 2033;
+	pre_output_angle_[20] = 2041;
+
 	name_cont_ = 0;
 	old_walking_stop = true;
 	std::vector<double> temp;
-	// if(map_motor.empty())
-	// {
+	if(map_motor.empty())
+	{
 		map_motor["motor_9"] = temp;
 		map_motor["motor_11"] = temp;
         map_motor["motor_12"] = temp;
@@ -189,7 +214,7 @@ InverseKinematic::InverseKinematic()
 		map_motor["motor_20"] = temp;
         map_motor["motor_21"] = temp;
 
-	// }
+	}
 }
 
 InverseKinematic::~InverseKinematic()
@@ -266,6 +291,8 @@ void InverseKinematic::initial_inverse_kinematic()
 	initial_points();//取得現在馬達刻度
 	initial_points_process();
 
+	LIK.initial_ik();
+
 	Points.Inverse_PointR_X = Points.X_COM + Points.X_Right_foot;               //Parameters.COM_X_Offset + Parameters.R_X_Offset;
 	Points.Inverse_PointR_Y = -Points.Y_COM + Points.Y_Right_foot;
 	Points.Inverse_PointR_Z = Points.Z_COM - Points.Z_Right_foot;
@@ -301,6 +328,8 @@ void InverseKinematic::initial_inverse_kinematic()
 	output_base_[10] += 0;
 	output_base_[16] -= 0;
 	Parameters.Body_Pitch_tmp = Parameters.Body_Pitch;
+
+	LIK.after_initial_ik();
 }
  
 void InverseKinematic::initial_parameters(){
@@ -336,7 +365,7 @@ void InverseKinematic::initial_parameters(){
 	//--------------Walk_Parameters------------------//
 	Parameters.Push_Rate = 0.40;      //?%
 }
-void InverseKinematic::initial_points()
+void InverseKinematic::initial_points()	// 待測試
 {
 	int i;
 	for(i = 0; i < 9; i++)  
@@ -461,6 +490,26 @@ void InverseKinematic::calculate_inverse_kinematic(int Motion_Delay)
     RL_2 = R_Lxyz * R_Lxyz;
     LL_2 = L_Lxyz * L_Lxyz;
 
+	// 計算腿部逆運動學
+	Vector12d leg_theta;
+	leg_theta = LIK.run();
+	// cout << "hand_theta: " << endl << hand_theta << endl;
+
+	Points.Thta[9] = leg_theta(0);
+	Points.Thta[10] = leg_theta(1);
+	Points.Thta[11] = leg_theta(2);
+	Points.Thta[12] = leg_theta(3);
+	Points.Thta[13] = leg_theta(4);
+	Points.Thta[14] = leg_theta(5);
+	Points.Thta[15] = leg_theta(6);
+	Points.Thta[16] = leg_theta(7);
+	Points.Thta[17] = leg_theta(8);
+	Points.Thta[18] = leg_theta(9);
+	Points.Thta[19] = leg_theta(10);
+	Points.Thta[20] = leg_theta(11);
+	Points.Thta[21] = leg_theta(12);
+
+	/*
     Points.Thta[9] = Points.Inverse_PiontL_Thta + PI_2;
     if(Points.Inverse_PointL_Y == 0)
     {
@@ -541,7 +590,7 @@ void InverseKinematic::calculate_inverse_kinematic(int Motion_Delay)
         Points.Thta[20] = PI - Points.Thta[16];
     else
         Points.Thta[20] = PI - Points.Thta[16]-rotate_body_l_;
-	
+	*/
 
 	if(parameterinfo->LCBalanceOn)
 	{
@@ -573,15 +622,26 @@ void InverseKinematic::calculate_inverse_kinematic(int Motion_Delay)
 		
 		// if(i==12)
 		// 	printf("thta 13 = %f, ag 13 = %f\n", Points.Thta[i], angle_gain_[i]);
+        int tmp_angle;
+
         if(Points.P_Table[i])
         {
-            output_angle_[i] = (unsigned int)(Max_value - (Points.Thta[i] * PI_TO_OUTPUT + Position_Zero));
+            tmp_angle = (Max_value - (Points.Thta[i] * PI_TO_OUTPUT + Position_Zero) + output_base_[i]);
         }
         else
         {
-            output_angle_[i] = (unsigned int)(Points.Thta[i] * PI_TO_OUTPUT + Position_Zero);
+            tmp_angle = (Points.Thta[i] * PI_TO_OUTPUT + Position_Zero + output_base_[i]);
         }
-        output_angle_[i] += output_base_[i];
+
+		if(tmp_angle < 0)
+		{
+			output_angle_[i] = pre_output_angle_[i];
+			// cout << "ik error : angle[" << i << " ] < 0" << endl;
+		}
+		else
+		{
+			output_angle_[i] = (unsigned int)tmp_angle;
+		}
 
         double different_thta;
         different_thta = fabs( past_thta_[i] - Points.Thta[i]);
@@ -592,6 +652,9 @@ void InverseKinematic::calculate_inverse_kinematic(int Motion_Delay)
         past_thta_[i] = Points.Thta[i];
         output_speed_[i] = delay_time_[i]  * SPEED_TRANS;
         output_speed_[i] = output_speed_[i] * speed_gain_[i];
+
+		if(i > 8 && LT.set_speed)
+			output_speed_[i] = 20;
 		//----------------------printf-----------------------------
         #ifdef Auto_Stand
             if(i == 10 || i == 11 || i == 12 || i == 13 || i == 14   || i == 16 || i == 17 || i == 18 || i == 19)
@@ -616,6 +679,9 @@ void InverseKinematic::calculate_inverse_kinematic(int Motion_Delay)
         {
             output_speed_[i] = 32767;
 		}
+
+		pre_output_angle_[i] = output_angle_[i];
+
 		///////////////////儲存屈膝站姿//////////////////////////
 		// printf("%d:%d\n", i+1, output_angle_[i]);
 		if(i>8)
