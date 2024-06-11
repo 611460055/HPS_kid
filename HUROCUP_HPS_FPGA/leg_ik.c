@@ -32,25 +32,25 @@ LegInverseKinematic::LegInverseKinematic()
 	right_leg.now_endpoint = right_leg.init_endpoint;
 	right_leg.cal_endpoint = right_leg.init_endpoint;
 
-	// stand狀態下的末端點	!!!!!!要再測量
-	rpy_tmp(0) = -PI;
+	// stand狀態下的末端點
+	rpy_tmp(0) = PI;
 	rpy_tmp(1) = 0;
 	rpy_tmp(2) = PI_2;
 	pos_tmp(0) = -0;
 	pos_tmp(1) = 4.45;
-	pos_tmp(2) = -32.434;
+	pos_tmp(2) = -23.5;
 	// 轉換成齊次轉換矩陣
 	left_leg.stand_endpoint = calculate_endpoint(rpy_tmp, pos_tmp);
 
-	rpy_tmp(0) = -PI;
+	rpy_tmp(0) = PI;
 	rpy_tmp(1) = 0;
 	rpy_tmp(2) = PI_2;
 	pos_tmp(0) = -0;
 	pos_tmp(1) = -4.45;
-	pos_tmp(2) = -32.434;
+	pos_tmp(2) = -23.5;
 	right_leg.stand_endpoint = calculate_endpoint(rpy_tmp, pos_tmp);
 
-	// 設置左右手base
+	// 設置左右腿base
 	left_leg.base.translation() << 0, LEG_L1, -LEG_L2;
 	left_leg.base.linear() << 0, -1, 0, -1, 0, 0, 0, 0, -1;
 	right_leg.base.translation() << 0, -LEG_L1, -LEG_L2;
@@ -59,29 +59,23 @@ LegInverseKinematic::LegInverseKinematic()
 	// cout << "left_leg.base = "<< endl << left_leg.base.matrix() << endl;
 	// cout << "right_leg.base = "<< endl << right_leg.base.matrix() << endl;
 
-	// 設置手臂的關節活動限制	!!!!!!要再測量
-	theta_min(0) = 0;
-	theta_min(1) = -3*PI_2;
-	theta_min(2) = -3*PI_2;
-	theta_min(3) = -30*DEGREE_2_PI;
-	theta_min(4) = -30*DEGREE_2_PI;
-	theta_min(5) = -30*DEGREE_2_PI;
+	// 設置腿部的關節活動限制
+	theta_min(0) = -20*DEGREE_2_PI;
+	theta_min(1) = 45*DEGREE_2_PI;
+	theta_min(2) = -PI_2;
+	theta_min(3) = -PI_2;
+	theta_min(4) = PI_2;
+	theta_min(5) = -25*DEGREE_2_PI;
 
-	theta_max(0) = 2*PI; // 195*PI/180;
-	theta_max(1) = PI_2;
+	theta_max(0) = 20*DEGREE_2_PI;
+	theta_max(1) = 135*DEGREE_2_PI;
 	theta_max(2) = PI_2;
-	theta_max(3) = 210*DEGREE_2_PI;
-	theta_max(4) = 210*DEGREE_2_PI;
-	theta_max(5) = 210*DEGREE_2_PI;
-
-	// 設置手臂末端點禁止進入的範圍
-	// x_min = -10;
-	// x_max = 9;
-	// y_min = -13.5;
-	// y_max = 13.5;
+	theta_max(3) = 0;
+	theta_max(4) = 3*PI_2;
+	theta_max(5) = 25*DEGREE_2_PI;
 	
-	left_leg.ik_error = false;		// 左手逆運動學錯誤旗標
-	right_leg.ik_error = false;		// 右手逆運動學錯誤旗標
+	left_leg.ik_error = false;		// 左腿逆運動學錯誤旗標
+	right_leg.ik_error = false;		// 右腿逆運動學錯誤旗標
 
 	name_cont_ = 0;
 	std::vector<float> temp;
@@ -110,7 +104,7 @@ void LegInverseKinematic::initial_ik()
 	// 獲取initial狀態下的末端點
 	right_leg.cal_endpoint = right_leg.init_endpoint;
 	left_leg.cal_endpoint = left_leg.init_endpoint;
-	// cout << "Get initial point." << endl;
+	cout << "Get initial point." << endl;
 }
 
 void LegInverseKinematic::after_initial_ik()
@@ -118,7 +112,7 @@ void LegInverseKinematic::after_initial_ik()
 	// initial_inverse_kinematic()後，將cal_endpoint改回now_endpoint
 	right_leg.cal_endpoint = right_leg.now_endpoint;
 	left_leg.cal_endpoint = left_leg.now_endpoint;
-	// cout << "After initial point." << endl;
+	cout << "After initial point." << endl;
 }
 
 Vector12d LegInverseKinematic::run()
@@ -136,7 +130,7 @@ Vector12d LegInverseKinematic::run()
 	if(!l_activities_error)
 	{
 		left_leg.save_rad = calculate_leg_ik(left_leg.cal_endpoint, left_leg.base);		// 左手
-		// cout << "left_leg.save_rad = " << endl << left_leg.save_rad << endl;
+		cout << "left_leg.save_rad = " << endl << left_leg.save_rad << endl;
 
 		// 檢查計算的角度是否超過限制
 		bool l_limit_error = limit_check(left_leg.save_rad);
@@ -147,7 +141,7 @@ Vector12d LegInverseKinematic::run()
 		else
 		{
 			left_leg.ik_error = true;
-			// cout << "left hand limit error!" << endl;
+			cout << "left hand limit error!" << endl;
 		}			
 	}
 	else
@@ -159,7 +153,7 @@ Vector12d LegInverseKinematic::run()
 	if(!r_activities_error)
 	{
 		right_leg.save_rad = calculate_leg_ik(right_leg.cal_endpoint, right_leg.base);	// 右手
-		// cout << "right_leg.save_rad = " << endl << right_leg.save_rad << endl;
+		cout << "right_leg.save_rad = " << endl << right_leg.save_rad << endl;
 
 		// 檢查計算出來的角度是否超過限制
 		bool r_limit_error = limit_check(right_leg.save_rad);
@@ -170,7 +164,7 @@ Vector12d LegInverseKinematic::run()
 		else
 		{
 			right_leg.ik_error = true;
-			// cout << "right hand limit error!" << endl;
+			cout << "right hand limit error!" << endl;
 		}			
 	}
 	else
@@ -297,16 +291,16 @@ Vector6d LegInverseKinematic::calculate_leg_ik(Affine3d end_point, Affine3d base
 bool LegInverseKinematic::limit_check(Vector6d theta)
 {
 	// 檢查計算出來的角度是否超過限制	
-	for(int i=0;i<4;i++)
+	for(int i=0;i<6;i++)
 	{
 		if(theta(i) < theta_min(i))
 		{
-			// cout << "theta(" << i << ") min error!" << endl;
+			cout << "theta(" << i << ") min error!" << endl;
 			return true;
 		}
 		else if(theta(i) > theta_max(i))
 		{
-			// cout << "theta(" << i << ") max error!" << endl;
+			cout << "theta(" << i << ") max error!" << endl;
 			return true;
 		}
 	}
@@ -340,7 +334,7 @@ void LegInverseKinematic::stand()
 	left_leg.cal_endpoint = left_leg.stand_endpoint;
 	left_leg.now_endpoint = left_leg.stand_endpoint;
 
-	// cout << "Get stand point." << endl;
+	cout << "Get stand point." << endl;
 }
 
 void LegInverseKinematic::pushData()
@@ -448,6 +442,7 @@ void LegTrajectory::initial()
 	set_speed = false;
 	position << 0, 0, 0;
 	rpy_radians << 0, 0, 0;
+	cout << "LT initial." << endl;
 }
 
 void LegTrajectory::set_parameter(bool left_leg_)
@@ -455,10 +450,14 @@ void LegTrajectory::set_parameter(bool left_leg_)
 	if(left_leg_)
 	{
 		LIK.left_leg.cal_endpoint = LIK.calculate_endpoint(rpy_radians, position);
+		cout << "Run left leg inverse kinematic." << endl
+			 << "cal_endpoint = " << endl << LIK.left_leg.cal_endpoint.matrix() << endl;
 	}
 	else
 	{
 		LIK.right_leg.cal_endpoint = LIK.calculate_endpoint(rpy_radians, position);
+		cout << "Run right leg inverse kinematic." << endl
+			 << "cal_endpoint = " << endl << LIK.right_leg.cal_endpoint.matrix() << endl;
 	}
 
 }

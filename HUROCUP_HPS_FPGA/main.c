@@ -45,6 +45,7 @@ int main()
 	//sleep(2);				//2s
 	while(1)
 	{ 
+		cout << "aa" << endl;
 		/*---動作串---*/
 		datamodule.load_database();
 		if(datamodule.motion_execute_flag_)
@@ -58,6 +59,7 @@ int main()
 				IK.calculate_inverse_kinematic(30); //計算逆運動學
 				walkinggait.if_finish_ = false;
 				datamodule.stand_flag = false;
+				cout << "stand" << endl;
 			}
 			datamodule.motion_execute();
 		}
@@ -141,6 +143,7 @@ int main()
 
 			if(!walkinggait.locus_flag_ && LT.start)
 			{
+				cout << "Run leg ik !" << endl;
 				locus.get_end_point();
 				IK.calculate_inverse_kinematic(walkinggait.motion_delay_); //計算逆運動學
 				locus.do_motion();
@@ -152,8 +155,8 @@ int main()
 		}
 		
 
- 		// printf(" ");
-		// usleep(500 * 1000); 
+ 		printf(" ");
+		usleep(500 * 1000); 
 		if((walkinggait.locus_flag_))
 		{
 				/* COM估測器 測試 */

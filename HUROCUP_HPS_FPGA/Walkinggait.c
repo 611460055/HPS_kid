@@ -182,7 +182,7 @@ void Walkinggait::update_parameter()
             LT.position(2) = tmp_arr[arr_index++];
             LT.position(2) += tmp_arr[arr_index++]/100.0;
             
-            // cout << "Get position." << endl;
+            cout << "Get position." << endl;
             
             motion_delay_ = 30;
             
@@ -206,7 +206,7 @@ void Walkinggait::update_parameter()
                 tmp_flag1 = (tmp_arr[arr_index++] > 0);
                 tmp_flag2 = (tmp_arr[arr_index++] > 0);
                 
-                // cout << "Get rpy." << endl;
+                cout << "Get rpy." << endl;
                 // cout << "Mode = " << mode << endl;
                 // cout << "Left hand = " << tmp_flag1 << endl;
 
@@ -1761,6 +1761,7 @@ double WalkingGaitByLIPM::wFootTheta(const double theta, bool reverse, const dou
         return theta;
     else if(t>T*(1-T_DSP/2) && reverse)
         return 0;    
+    return 0;
 }
 double WalkingGaitByLIPM::unit_step(double x)
 {

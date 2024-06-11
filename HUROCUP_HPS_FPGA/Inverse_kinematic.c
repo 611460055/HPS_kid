@@ -184,18 +184,20 @@ InverseKinematic::InverseKinematic()
 	pre_output_angle_[6] = 2048;
 	pre_output_angle_[7] = 1348;
 	pre_output_angle_[8] = 2028;
-	pre_output_angle_[9] = 2048;
-	pre_output_angle_[10] = 2028;
-	pre_output_angle_[11] = 1868;
-	pre_output_angle_[12] = 2078;
-	pre_output_angle_[13] = 2058;
-	pre_output_angle_[14] = 2033;
-	pre_output_angle_[15] = 2048;
-	pre_output_angle_[16] = 2078;
-	pre_output_angle_[17] = 2220;
-	pre_output_angle_[18] = 2023;
-	pre_output_angle_[19] = 2033;
-	pre_output_angle_[20] = 2041;
+
+	pre_output_angle_[9] = 1998;
+	pre_output_angle_[10] = 2018;
+	pre_output_angle_[11] = 1843;
+	pre_output_angle_[12] = 2113;
+	pre_output_angle_[13] = 2048;
+	pre_output_angle_[14] = 2051;
+
+	pre_output_angle_[15] = 2058;
+	pre_output_angle_[16] = 2073;
+	pre_output_angle_[17] = 2262;
+	pre_output_angle_[18] = 1978;
+	pre_output_angle_[19] = 2046;
+	pre_output_angle_[20] = 2068;
 
 	name_cont_ = 0;
 	old_walking_stop = true;
@@ -291,6 +293,7 @@ void InverseKinematic::initial_inverse_kinematic()
 	initial_points();//取得現在馬達刻度
 	initial_points_process();
 
+	cout << "Initial Inverse Kinematic" << endl;
 	LIK.initial_ik();
 
 	Points.Inverse_PointR_X = Points.X_COM + Points.X_Right_foot;               //Parameters.COM_X_Offset + Parameters.R_X_Offset;
@@ -365,7 +368,7 @@ void InverseKinematic::initial_parameters(){
 	//--------------Walk_Parameters------------------//
 	Parameters.Push_Rate = 0.40;      //?%
 }
-void InverseKinematic::initial_points()	// 待測試
+void InverseKinematic::initial_points()
 {
 	int i;
 	for(i = 0; i < 9; i++)  
@@ -380,18 +383,20 @@ void InverseKinematic::initial_points()	// 待測試
 	Points.P_Table[6] = 0;                     //Positive
 	Points.P_Table[7] = 0;                     //Positive
 	Points.P_Table[8] = 0;                     //Positive
+
 	Points.P_Table[9] = 0;                     //Positive
-	Points.P_Table[10] = 0;                    //Positive
-	Points.P_Table[11] = 0;                    //Positive
-	Points.P_Table[12] = 0;                    //Positive
-	Points.P_Table[13] = 1;                    //Negitive
-	Points.P_Table[14] = 1;                    //Negitive
+	Points.P_Table[10] = 1;                    //Positive
+	Points.P_Table[11] = 1;                    //Positive
+	Points.P_Table[12] = 1;                    //Positive
+	Points.P_Table[13] = 0;                    //Negitive
+	Points.P_Table[14] = 0;                    //Negitive
+
 	Points.P_Table[15] = 0;                    //Positive
-	Points.P_Table[16] = 0;                    //Pogitive
-	Points.P_Table[17] = 1;                    //Negitive
-	Points.P_Table[18] = 1;                    //Negitive
-	Points.P_Table[19] = 0;                    //Positive
-	Points.P_Table[20] = 1;                    //Negitive
+	Points.P_Table[16] = 1;                    //Pogitive
+	Points.P_Table[17] = 0;                    //Negitive
+	Points.P_Table[18] = 0;                    //Negitive
+	Points.P_Table[19] = 1;                    //Positive
+	Points.P_Table[20] = 0;                    //Negitive
 
 #ifdef Robot1    
 	// for(i = 0; i < 21; i++)
@@ -493,7 +498,7 @@ void InverseKinematic::calculate_inverse_kinematic(int Motion_Delay)
 	// 計算腿部逆運動學
 	Vector12d leg_theta;
 	leg_theta = LIK.run();
-	// cout << "hand_theta: " << endl << hand_theta << endl;
+	cout << "leg_theta : " << endl << leg_theta << endl;
 
 	Points.Thta[9] = leg_theta(0);
 	Points.Thta[10] = leg_theta(1);
@@ -642,6 +647,7 @@ void InverseKinematic::calculate_inverse_kinematic(int Motion_Delay)
 		{
 			output_angle_[i] = (unsigned int)tmp_angle;
 		}
+		cout << "output_angle_[" << i << "] = " << output_angle_[i] << endl;
 
         double different_thta;
         different_thta = fabs( past_thta_[i] - Points.Thta[i]);
