@@ -343,7 +343,7 @@ void Walkinggait::pushData()
             cnt = 0;
             // IK.saveData();
             // feedbackmotor.saveData();
-            // saveData();
+            saveData();
             // balance.saveData();
         }  
     }        
@@ -375,14 +375,12 @@ void Walkinggait::pushData()
         // map_walk.find("r_foot_t")->second.push_back(step_point_rthta_);
         // map_walk.find("com_x")->second.push_back(px_);
         // map_walk.find("com_y")->second.push_back(py_);
-        // map_walk.find("com_vx")->second.push_back(vx0_);
-        // map_walk.find("com_vy")->second.push_back(vy0_);
         // map_walk.find("now_step_")->second.push_back(now_step_);
         // map_walk.find("ideal_zmp_x")->second.push_back(zmp_x);
         // map_walk.find("ideal_zmp_y")->second.push_back(zmp_y);
         // map_walk.find("points")->second.push_back(now_width_);
         // map_walk.find("t_")->second.push_back(t_);
-        // map_walk.find("time_point_")->second.push_back(time_point_);
+        map_walk.find("time_point_")->second.push_back(time_point_);
         // map_walk.find("case")->second.push_back(Step_Count_);
         // map_walk.find("sensor.roll")->second.push_back(sensor.rpy_[0]);
         // map_walk.find("sensor.pitch")->second.push_back(sensor.rpy_[1]);
@@ -392,18 +390,10 @@ void Walkinggait::pushData()
         // map_walk.find("var_theta_")->second.push_back(var_theta_);
         // map_walk.find("Cpz")->second.push_back(pz_);
         // map_walk.find("Cpx")->second.push_back(px_);
-
-        // map_walk.find("C_")->second.push_back(C_);
-        // map_walk.find("D_")->second.push_back(D_);
-        // map_walk.find("S_")->second.push_back(S_);
-        // map_walk.find("xb")->second.push_back(xb);
-        // map_walk.find("yb")->second.push_back(yb);
-        // map_walk.find("vxb")->second.push_back(vxb);
-        // map_walk.find("vyb")->second.push_back(vyb);
-        // map_walk.find("x_des")->second.push_back(x_des);
-        // map_walk.find("y_des")->second.push_back(y_des);
-        // map_walk.find("point_x")->second.push_back(point_x);
-        // map_walk.find("point_y")->second.push_back(point_y);
+        map_walk.find("com_z_height")->second.push_back(now_com_height);
+        map_walk.find("stand_height")->second.push_back(now_stand_height);
+        map_walk.find("rightfoot_shift_z")->second.push_back(rightfoot_shift_z);
+        map_walk.find("com_y_swing")->second.push_back(com_y_swing);
     }
 }
 
@@ -492,28 +482,7 @@ WalkingGaitByLIPM::WalkingGaitByLIPM()
     pz_ = com_z_height;
     com_y_swing = 0;
     rightfoot_shift_z = 0;
-
-    C_ = 0;
-    D_ = 0;
-    S_ = 0;
-    a_ = 100;
-    b_ = 1;
-    xdi = 0;
-    ydi = 0;
-    xb = 0;
-    yb = 0;
-    vxb = 0;
-    vyb = 0;
-    x_des = 0;
-    y_des = 0;
-    xd_des = 0;
-    yd_des = 0;
-    point_x = 0;
-    point_y = 0;
-    yi_ = 0;
-    xi_ = 0;
-    ye_ = -4.5;
-}
+    }
 WalkingGaitByLIPM::~WalkingGaitByLIPM()
 {    }
 
@@ -535,36 +504,27 @@ void WalkingGaitByLIPM::initialize()
         // map_walk["r_foot_t"] = temp;
         // map_walk["com_x"] = temp;
 		// map_walk["com_y"] = temp;
-        // map_walk["com_vx"] = temp;
-		// map_walk["com_vy"] = temp;
         // map_walk["now_step_"] = temp;
 		// map_walk["ideal_zmp_x"] = temp;
 		// map_walk["ideal_zmp_y"] = temp;
         
 		// map_walk["points"] = temp;
         // map_walk["t_"] = temp;
-        // map_walk["time_point_"] = temp;
+        map_walk["time_point_"] = temp;
         // map_walk["case"] = temp;
         // map_walk["cnt"] = temp;
         // map_walk["sensor.roll"] = temp;
 		// map_walk["sensor.pitch"] = temp;
 		// map_walk["sensor.yaw"] = temp;
-
+        map_walk["com_z_height"] = temp;
+        map_walk["stand_height"] = temp;
+        map_walk["rightfoot_shift_z"] = temp;
+        map_walk["com_y_swing"] = temp;
+        
         // map_walk["theta"] = temp;
         // map_walk["var_theta_"] = temp;
         // map_walk["Cpz"] = temp;
         // map_walk["Cpx"] = temp;
-        // map_walk["C_"] = temp;
-        // map_walk["D_"] = temp;
-        // map_walk["S_"] = temp;
-        // map_walk["xb"] = temp;
-        // map_walk["yb"] = temp;
-        // map_walk["vxb"] = temp;
-        // map_walk["vyb"] = temp;
-        // map_walk["x_des"] = temp;
-        // map_walk["y_des"] = temp;
-        // map_walk["point_x"] = temp;
-        // map_walk["point_y"] = temp;
 	}
 } 
 void WalkingGaitByLIPM::readWalkParameter()
@@ -722,27 +682,6 @@ void WalkingGaitByLIPM::resetParameter()
     com_lift_height = 0;
     board_height = 0;
     pz_ = com_z_height;
-
-    C_ = 0;
-    D_ = 0;
-    S_ = 0;
-    a_ = 100;
-    b_ = 1;
-    xdi = 0;
-    ydi = 0;
-    xb = 0;
-    yb = 0;
-    vxb = 0;
-    vyb = 0;
-    x_des = 0;
-    y_des = 0;
-    xd_des = 0;
-    yd_des = 0;
-    point_x = 0;
-    point_y = 0;
-    xi_ = 0;
-    yi_ = 0;
-    ye_ = -4.5;
 }  
  
 void WalkingGaitByLIPM::process()
@@ -754,7 +693,7 @@ void WalkingGaitByLIPM::process()
     sample_point_++;
     time_point_ = sample_point_ * sample_time_;
     Tc_ = sqrt(com_z_height/g_);          /* 機器人的自然週期 */
-    
+
     TT_ = (double)period_t_ * 0.001;    /* 步週期 單位[s] */
 
     /* 步週期內時刻 [0,TT_] 單位[s] */
@@ -872,37 +811,8 @@ void WalkingGaitByLIPM::process()
 
         base_x = (footstep_x + zmp_x)/2;
         base_y = (footstep_y + zmp_y)/2;
-        // LIPM改版
-        C_ = cosh(TT_ / Tc_);
-        S_ = sinh(TT_ / Tc_);
-        D_ = a_*pow((C_-1), 2) + b_*pow((S_/Tc_), 2);
+        
 
-        if(now_step_ == 0)
-        {
-            ye_ = -width_size_;
-            xi_ = 0;
-            yi_ = 0;
-            xdi = 0;
-            ydi = (C_-1) / (Tc_*S_)*ye_;
-        }
-        else
-        {
-            xi_ = px_;
-            yi_ = py_;
-            xdi = vx0_;
-            ydi = vy0_;
-        }
-
-        xb = displacement_x / 2;
-        yb = displacement_y / 2;
-        vxb = (C_+1) / (Tc_*S_)*xb;
-        vyb = (C_-1) / (Tc_*S_)*yb;
-        x_des = zmp_x + xb;
-        y_des = zmp_y + yb;
-        xd_des = vxb;
-        yd_des = vyb;
-        point_x = -a_*(C_-1)/D_*(x_des - C_*xi_ - Tc_*S_*xdi) - b_*S_/(Tc_*D_)*(xd_des - S_/Tc_*xi_ - C_*xdi);
-        point_y = -a_*(C_-1)/D_*(y_des - C_*yi_ - Tc_*S_*ydi) - b_*S_/(Tc_*D_)*(yd_des - S_/Tc_*yi_ - C_*ydi);
     }
     pre_step_ = now_step_;//步數儲存
 
@@ -935,15 +845,15 @@ void WalkingGaitByLIPM::process()
         shift_length_ = 0;
         */
 
-        vx0_ = wComVelocityInit(xi_, xdi, point_x, t_, Tc_);
-        vy0_ = wComVelocityInit(yi_, ydi, point_y, t_, Tc_);
-        px_ = wComPosition(xi_, xdi, point_x, t_, Tc_);
-        py_ = wComPosition(yi_, ydi, point_y, t_, Tc_);
+        vx0_ = wComVelocityInit(0, 0, zmp_x, TT_, Tc_);
+        px_ = wComPosition(0, vx0_, zmp_x, t_, Tc_);
+        vy0_ = wComVelocityInit(0, 0, zmp_y, TT_, Tc_);
+        // py_ = wComPosition(0, vy0_, zmp_y, t_, Tc_);
 
         StartHeight_ = StartHeight_;
         if((now_step_ % 2) == 1)
         {
-            // py_ = wComPosition(0, vy0_, zmp_y, t_, Tc_);
+            py_ = wComPosition(0, vy0_, zmp_y, t_, Tc_);
             lpx_ = zmp_x;
             rpx_ = wFootPositionRepeat(now_right_x_, 0, t_, TT_, T_DSP_);
             lpy_ = zmp_y;
@@ -956,7 +866,7 @@ void WalkingGaitByLIPM::process()
         }
         else if((now_step_ % 2) == 0)
         {
-            // py_ = wComPosition(0, vy0_, zmp_y, t_, Tc_)+com_y_swing*sin(PI*t_/TT_);
+            py_ = wComPosition(0, vy0_, zmp_y, t_, Tc_)+com_y_swing*sin(PI*t_/TT_);
             lpx_ = wFootPositionRepeat(now_left_x_, 0, t_, TT_, T_DSP_);
             rpx_ = zmp_x;
             lpy_ = wFootPositionRepeat(now_left_y_, 0, t_, TT_, T_DSP_);
@@ -969,11 +879,12 @@ void WalkingGaitByLIPM::process()
         }
         break;
     case FirstStep:
-        vx0_ = wComVelocityInit(xi_, xdi, point_x, t_, Tc_);
-        vy0_ = wComVelocityInit(yi_, ydi, point_y, t_, Tc_);
-        px_ = wComPosition(xi_, xdi, point_x, t_, Tc_);
-        py_ = wComPosition(yi_, ydi, point_y, t_, Tc_);
-
+        // map_walk.find("case")->second.push_back(1);
+        
+        vx0_ = wComVelocityInit(0, base_x, zmp_x, TT_, Tc_);
+        px_ = wComPosition(0, vx0_, zmp_x, t_, Tc_);
+        vy0_ = wComVelocityInit(0, base_y, zmp_y, TT_, Tc_);
+        py_ = wComPosition(0, vy0_, zmp_y, t_, Tc_);
         lpx_ = wFootPosition(now_left_x_, displacement_x, t_, TT_, T_DSP_);
         rpx_ = zmp_x;
         lpy_ = wFootPosition(now_left_y_, displacement_y-now_width_, t_, TT_, T_DSP_);
@@ -986,10 +897,11 @@ void WalkingGaitByLIPM::process()
 
         break;
     case StopStep:
-        vx0_ = wComVelocityInit(xi_, xdi, point_x, t_, Tc_);
-        vy0_ = wComVelocityInit(yi_, ydi, point_y, t_, Tc_);
-        px_ = wComPosition(xi_, xdi, point_x, t_, Tc_);
-        py_ = wComPosition(yi_, ydi, point_y, t_, Tc_);
+        // map_walk.find("case")->second.push_back(4);
+        vx0_ = wComVelocityInit(last_base_x, base_x, zmp_x, TT_, Tc_);
+        px_ = wComPosition(last_base_x, vx0_, zmp_x, t_, Tc_);
+        vy0_ = wComVelocityInit(last_base_y, base_y, zmp_y, TT_, Tc_);
+        py_ = wComPosition(last_base_y, vy0_, zmp_y, t_, Tc_);
 
         if((now_step_ % 2) == 1)
         {
@@ -1018,10 +930,11 @@ void WalkingGaitByLIPM::process()
         break;
 
     case Repeat:
-        vx0_ = wComVelocityInit(xi_, xdi, point_x, t_, Tc_);
-        vy0_ = wComVelocityInit(yi_, ydi, point_y, t_, Tc_);
-        px_ = wComPosition(xi_, xdi, point_x, t_, Tc_);
-        py_ = wComPosition(yi_, ydi, point_y, t_, Tc_);
+        // map_walk.find("case")->second.push_back(3);
+        vx0_ = wComVelocityInit(last_base_x, base_x, zmp_x, TT_, Tc_);
+        px_ = wComPosition(last_base_x, vx0_, zmp_x, t_, Tc_);
+        vy0_ = wComVelocityInit(last_base_y, base_y, zmp_y, TT_, Tc_);
+        py_ = wComPosition(last_base_y, vy0_, zmp_y, t_, Tc_);
 
         if((now_step_ % 2) == 1)
         {
@@ -1064,6 +977,7 @@ void WalkingGaitByLIPM::process()
         break;
     
     default:
+        // map_walk.find("case")->second.push_back(9);
         break;
     }
 
@@ -1211,37 +1125,7 @@ void WalkingGaitByLIPM::LCdown()
 
         base_x = (footstep_x + zmp_x)/2;
         base_y = (footstep_y + zmp_y)/2;
-        // LIPM改版
-        C_ = cosh(TT_ / Tc_);
-        S_ = sinh(TT_ / Tc_);
-        D_ = a_*pow((C_-1), 2) + b_*pow((S_/Tc_), 2);
-
-        if(now_step_ == 0)
-        {
-            ye_ = -width_size_;
-            xi_ = 0;
-            yi_ = 0;
-            xdi = 0;
-            ydi = (C_-1) / (Tc_*S_)*ye_;
-        }
-        else
-        {
-            xi_ = px_;
-            yi_ = py_;
-            xdi = vx0_;
-            ydi = vy0_;
-        }
-
-        xb = displacement_x / 2;
-        yb = displacement_y / 2;
-        vxb = (C_+1) / (Tc_*S_)*xb;
-        vyb = (C_-1) / (Tc_*S_)*yb;
-        x_des = zmp_x + xb;
-        y_des = zmp_y + yb;
-        xd_des = vxb;
-        yd_des = vyb;
-        point_x = -a_*(C_-1)/D_*(x_des - C_*xi_ - Tc_*S_*xdi) - b_*S_/(Tc_*D_)*(xd_des - S_/Tc_*xi_ - C_*xdi);
-        point_y = -a_*(C_-1)/D_*(y_des - C_*yi_ - Tc_*S_*ydi) - b_*S_/(Tc_*D_)*(yd_des - S_/Tc_*yi_ - C_*ydi);
+        
 
     }
     pre_step_ = now_step_;//步數儲存
@@ -1260,11 +1144,10 @@ void WalkingGaitByLIPM::LCdown()
     case FirstStep:
         // map_walk.find("case")->second.push_back(1);
         
-        vx0_ = wComVelocityInit(xi_, xdi, point_x, t_, Tc_);
-        vy0_ = wComVelocityInit(yi_, ydi, point_y, t_, Tc_);
-        px_ = wComPosition(xi_, xdi, point_x, t_, Tc_);
-        py_ = wComPosition(yi_, ydi, point_y, t_, Tc_);
-
+        vx0_ = wComVelocityInit(0, base_x, zmp_x, TT_, Tc_);
+        px_ = wComPosition(0, vx0_, zmp_x, t_, Tc_);
+        vy0_ = wComVelocityInit(0, base_y+com_y_swing, zmp_y, TT_, Tc_);
+        py_ = wComPosition(0, vy0_, zmp_y, t_, Tc_);
         lpx_ = wFootPosition(now_left_x_, displacement_x, t_, TT_, T_DSP_);
         rpx_ = zmp_x;
         lpy_ = wFootPosition(now_left_y_, displacement_y-now_width_, t_, TT_, T_DSP_);
@@ -1287,10 +1170,11 @@ void WalkingGaitByLIPM::LCdown()
         break;
     case StopStep:
         parameterinfo->LCFinishFlag = true;
-        vx0_ = wComVelocityInit(xi_, xdi, point_x, t_, Tc_);
-        vy0_ = wComVelocityInit(yi_, ydi, point_y, t_, Tc_);
-        px_ = wComPosition(xi_, xdi, point_x, t_, Tc_);
-        py_ = wComPosition(yi_, ydi, point_y, t_, Tc_);
+        vx0_ = wComVelocityInit(last_base_x, base_x, zmp_x, TT_, Tc_);
+        px_ = wComPosition(last_base_x, vx0_, zmp_x, t_, Tc_);
+        vy0_ = wComVelocityInit(last_base_y+com_y_swing, base_y, zmp_y, TT_, Tc_);
+        py_ = wComPosition(last_base_y+com_y_swing, vy0_, zmp_y, t_, Tc_);
+
         
         lpx_ = lpx_;            
         lpy_ = zmp_y;
@@ -1313,6 +1197,7 @@ void WalkingGaitByLIPM::LCdown()
         rpt_ = wFootTheta(-last_theta_, 1, t_, TT_, T_DSP_);
         
     default:
+        // map_walk.find("case")->second.push_back(9);
         break;
     }
 
@@ -1461,37 +1346,8 @@ void WalkingGaitByLIPM::LCup()
 
         base_x = (footstep_x + zmp_x)/2;
         base_y = (footstep_y + zmp_y)/2;
-        // LIPM改版
-        C_ = cosh(TT_ / Tc_);
-        S_ = sinh(TT_ / Tc_);
-        D_ = a_*pow((C_-1), 2) + b_*pow((S_/Tc_), 2);
+        
 
-        if(now_step_ == 0)
-        {
-            ye_ = -width_size_;
-            xi_ = 0;
-            yi_ = 0;
-            xdi = 0;
-            ydi = (C_-1) / (Tc_*S_)*ye_;
-        }
-        else
-        {
-            xi_ = px_;
-            yi_ = py_;
-            xdi = vx0_;
-            ydi = vy0_;
-        }
-
-        xb = displacement_x / 2;
-        yb = displacement_y / 2;
-        vxb = (C_+1) / (Tc_*S_)*xb;
-        vyb = (C_-1) / (Tc_*S_)*yb;
-        x_des = zmp_x + xb;
-        y_des = zmp_y + yb;
-        xd_des = vxb;
-        yd_des = vyb;
-        point_x = -a_*(C_-1)/D_*(x_des - C_*xi_ - Tc_*S_*xdi) - b_*S_/(Tc_*D_)*(xd_des - S_/Tc_*xi_ - C_*xdi);
-        point_y = -a_*(C_-1)/D_*(y_des - C_*yi_ - Tc_*S_*ydi) - b_*S_/(Tc_*D_)*(yd_des - S_/Tc_*yi_ - C_*ydi);
     }
     pre_step_ = now_step_;//步數儲存
 
@@ -1507,11 +1363,12 @@ void WalkingGaitByLIPM::LCup()
     switch (parameterinfo->complan.walking_state)
     {
     case FirstStep:
-        vx0_ = wComVelocityInit(xi_, xdi, point_x, t_, Tc_);
-        vy0_ = wComVelocityInit(yi_, ydi, point_y, t_, Tc_);
-        px_ = wComPosition(xi_, xdi, point_x, t_, Tc_);
-        py_ = wComPosition(yi_, ydi, point_y, t_, Tc_);
+        // map_walk.find("case")->second.push_back(1);
         
+        vx0_ = wComVelocityInit(0, base_x, zmp_x, TT_, Tc_);
+        px_ = wComPosition(0, vx0_, zmp_x, t_, Tc_);
+        vy0_ = wComVelocityInit(0, (base_y+com_y_swing), zmp_y, TT_, Tc_);
+        py_ = wComPosition(0, vy0_, zmp_y, t_, Tc_);
         lpx_ = wFootPosition(now_left_x_, displacement_x, t_, TT_, T_DSP_);
         rpx_ = zmp_x;
         lpy_ = wFootPosition(now_left_y_, displacement_y-now_width_, t_, TT_, T_DSP_);
@@ -1535,10 +1392,10 @@ void WalkingGaitByLIPM::LCup()
         break;
     case StopStep:
         parameterinfo->LCFinishFlag = true;
-        vx0_ = wComVelocityInit(xi_, xdi, point_x, t_, Tc_);
-        vy0_ = wComVelocityInit(yi_, ydi, point_y, t_, Tc_);
-        px_ = wComPosition(xi_, xdi, point_x, t_, Tc_);
-        py_ = wComPosition(yi_, ydi, point_y, t_, Tc_);
+        vx0_ = wComVelocityInit(last_base_x, base_x, zmp_x, TT_, Tc_);
+        px_ = wComPosition(last_base_x, vx0_, zmp_x, t_, Tc_);
+        vy0_ = wComVelocityInit((last_base_y+com_y_swing), base_y, zmp_y, TT_, Tc_);
+        py_ = wComPosition((last_base_y+com_y_swing), vy0_, zmp_y, t_, Tc_);
 
         
         lpx_ = lpx_;            
@@ -1562,6 +1419,7 @@ void WalkingGaitByLIPM::LCup()
         lpt_ = 0;
         rpt_ = wFootTheta(-last_theta_, 1, t_, TT_, T_DSP_);      
     default:
+        // map_walk.find("case")->second.push_back(9);
         break;
     }
 
@@ -1648,13 +1506,13 @@ void WalkingGaitByLIPM::coordinate_offset()
     end_point_lthta_ = step_point_lthta_;
     end_point_rthta_ = step_point_rthta_;
 }
-double WalkingGaitByLIPM::wComVelocityInit(double x0, double vx0, double px, double t, double T)
+double WalkingGaitByLIPM::wComVelocityInit(double x0, double xt, double px, double t, double T)
 {
-    return (((x0 - px) / T) * sinh(t/T) + vx0 * cosh(t/T));
+    return (xt - x0*cosh(t/T) + px*(cosh(t/T)-1))/(T*sinh(t/T));
 }
 double WalkingGaitByLIPM::wComPosition(double x0, double vx0, double px, double t, double T)
 {
-    return ((x0 - px) * cosh(t/T) + T * vx0 * sinh(t/T) + px);
+    return (x0*cosh(t/T) + T*vx0*sinh(t/T) - px*(cosh(t/T)-1));
 }
 double WalkingGaitByLIPM::wFootPosition(const double start, const double length, const double t, const double T, const double T_DSP)
 {

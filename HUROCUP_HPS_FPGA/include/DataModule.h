@@ -36,6 +36,8 @@ public:
     void update_database();
     void motion_execute();
     void set_stand();
+    void stand_button_press();
+    void stand_button_execute();
 
     std::string DtoS(double value);
 	std::map<std::string, std::vector<double>> map_motor;       
@@ -45,10 +47,13 @@ public:
     unsigned char datamodule_cmd_;
     bool motion_execute_flag_;
     bool stand_flag;
+    bool update_stand_flag_;
     int totalangle_[21];
     int totalspeed_[21];
     int Calculate_standangle[12];
     int Calculate_standspeed[12];
+    int standangle[12];
+    int standspeed[12];
 
     int Walking_standangle[21];
     int Walking_standspeed[21];

@@ -143,8 +143,76 @@ void Datamodule::update_database()
 				break;
 			}
 		}
+		if(stand_flag)
+		{
+			for(int i=0;i<12;i++)
+			{
+				standspeed[i] = Calculate_standspeed[i];
+				standangle[i] = Calculate_standangle[i];
+			}
+		}
 	}
 }
+
+void Datamodule::stand_button_press()
+{
+	int state = 0;
+	int count = 0;
+	
+	cout << "begin read stand" << endl;
+	for(;;)
+	{
+		if(state == 0)
+		{
+			update_stand_flag_ = false;
+			motion_execute_flag_ = false;
+			cout << *(uint32_t *)init.p2h_stand_button_addr << endl;
+			if(*(uint32_t *)init.p2h_stand_button_addr)
+			{
+				cout<<"aa"<<endl;
+				state = 1;
+				continue;
+			}
+			else
+			{
+				cout<<"bb"<<endl;
+				break;
+			}
+			
+		}
+		else if(state == 1)
+		{
+			cout << "ready stand" << endl;
+			update_stand_flag_ = true;
+			motion_execute_flag_ = true;
+			state = 0;
+			stand_button_execute();
+			break;
+		}
+	}
+}
+
+void Datamodule::stand_button_execute()
+{
+	if(update_stand_flag_)
+	{
+		cout << "button stand" << endl;
+		stand_flag = true;
+		for(int i=0; i<21; i++)
+		{
+			totalspeed_[i] = Walking_standspeed[i];
+			totalangle_[i] = Walking_standangle[i];
+		}
+		
+		for(int i=0; i<12; i++)
+		{
+			Calculate_standspeed[i] = standspeed[i];
+			Calculate_standangle[i] = standangle[i];
+		}
+		cout<< "stand!!"<< endl;
+	}
+}
+
 void Datamodule::pushData()
 {
 	map_motor.find("motor_01")->second.push_back((double)totalangle_[0]);

@@ -116,6 +116,37 @@ public:
     void *p2h_motor_data_rightfoot_addr;
     void *h2p_read_motor_data_rightfoot_pulse_addr;
 
+    void *p2h_set_hps_read_motor_data_lefthand_addr;
+    void *p2h_motor_data_lefthand_addr;
+    void *h2p_read_motor_data_lefthand_pulse_addr;
+
+    void *p2h_set_hps_read_motor_data_righthand_addr;
+    void *p2h_motor_data_righthand_addr;
+    void *h2p_read_motor_data_righthand_pulse_addr;
+
+    void *p2h_leftfoot_feedback_addr;
+    void *p2h_rightfoot_feedback_addr;
+	void *p2h_lefthand_feedback_addr;
+    void *p2h_righthand_feedback_addr;
+    void *p2h_leftfoot_torque_addr;
+	void *p2h_rightfoot_torque_addr;
+    void *p2h_lefthand_torque_addr;
+    void *p2h_righthand_torque_addr;
+
+    void *p2h_gait_hps_read_motor_data_lf_addr;
+    void *p2h_gait_hps_read_motor_data_rf_addr;
+    void *p2h_stand_button_addr;
+
+    // void *p2h_read_stand_pulse_addr;
+    // void *p2h_torque_button_pulse_addr;
+    // void *p2h_feedback_leftfoot_button_pulse_addr;
+    // void *p2h_feedback_lefthand_button_pulse_addr;
+    // void *p2h_feedback_rightfoot_button_pulse_addr;
+    // void *p2h_feedback_righthand_button_pulse_addr;
+    // void *p2h_read_foot_feedback_button_addr;
+    // void *p2h_read_hand_feedback_button_addr;
+    // void *p2h_gait_motor_feedback_rightfoot_addr;
+    // void *p2h_gait_motor_feedback_leftfoot_addr;
 
     void *axi_virtual_base;
     void *robot_motion_addr;

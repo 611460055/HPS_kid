@@ -75,7 +75,39 @@ void Initial::initial_memory_mapping()
     p2h_motor_data_rightfoot_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + MOTOR_DATA_RF_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
     h2p_read_motor_data_rightfoot_pulse_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + READ_MOTOR_DATA_RF_PULSE_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
 
+	p2h_set_hps_read_motor_data_lefthand_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + SET_HPS_READ_MOTOR_DATA_LH_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+    p2h_motor_data_lefthand_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + MOTOR_DATA_LH_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+    h2p_read_motor_data_lefthand_pulse_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + READ_MOTOR_DATA_LH_PULSE_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
 
+	p2h_set_hps_read_motor_data_righthand_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + SET_HPS_READ_MOTOR_DATA_RH_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+    p2h_motor_data_righthand_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + MOTOR_DATA_RH_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+    h2p_read_motor_data_righthand_pulse_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + READ_MOTOR_DATA_RH_PULSE_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+
+	p2h_leftfoot_feedback_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + LF_FEEDBACK_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+    p2h_rightfoot_feedback_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + RF_FEEDBACK_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+	p2h_lefthand_feedback_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + LH_FEEDBACK_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+    p2h_righthand_feedback_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + RH_FEEDBACK_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+    p2h_leftfoot_torque_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + LF_TORQUE_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+	p2h_rightfoot_torque_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + RF_TORQUE_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+    p2h_lefthand_torque_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + LH_TORQUE_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+    p2h_righthand_torque_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + RH_TORQUE_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+
+	p2h_gait_hps_read_motor_data_lf_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + GAIT_HPS_READ_MOTOR_DATA_LF_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+    p2h_gait_hps_read_motor_data_rf_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + GAIT_HPS_READ_MOTOR_DATA_RF_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+	p2h_stand_button_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + STAND_BUTTON_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+
+	// p2h_read_stand_pulse_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + READ_STAND_PULSE_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+	// p2h_torque_button_pulse_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + TORQUE_BUTTON_PULSE_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+	// p2h_feedback_leftfoot_button_pulse_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + FEEDBACK_LEFTFOOT_BUTTON_PULSE_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+	// p2h_feedback_lefthand_button_pulse_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + FEEDBACK_LEFTHAND_BUTTON_PULSE_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+	// p2h_feedback_rightfoot_button_pulse_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + FEEDBACK_RIGHTFOOT_BUTTON_PULSE_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+	// p2h_feedback_righthand_button_pulse_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + FEEDBACK_RIGHTHAND_BUTTON_PULSE_0_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+
+	// p2h_read_foot_feedback_button_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + READ_FOOT_FEEDBACK_BUTTON_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+	// p2h_read_hand_feedback_button_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + READ_HAND_FEEDBACK_BUTTON_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+
+	// p2h_gait_motor_feedback_rightfoot_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + GAIT_MOTOR_FEEDBACK_RF_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
+	// p2h_gait_motor_feedback_leftfoot_addr = virtual_base + ( ( unsigned long  )( ALT_LWFPGASLVS_OFST + GAIT_MOTOR_FEEDBACK_LF_BASE ) & ( unsigned long)( HW_REGS_MASK ) );
 
 	axi_virtual_base = mmap( NULL, HW_FPGA_AXI_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, fd, ALT_AXI_FPGASLVS_OFST );
 	if( virtual_base == MAP_FAILED ) {

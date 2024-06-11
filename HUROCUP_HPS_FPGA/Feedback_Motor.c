@@ -2,6 +2,8 @@
 
 extern Initial init;
 extern Walkinggait walkinggait;
+extern Datamodule datamodule;
+
 Feedback_Motor::Feedback_Motor()
 {
     name_cont_ = 0;
@@ -43,6 +45,7 @@ void Feedback_Motor::load_motor_data_left_foot()
             update_motor_data_left_foot_flag_ = false;
             if(*(uint32_t *)init.p2h_set_hps_read_motor_data_leftfoot_addr)
             {
+                cout << "left foot" << endl;
                 state = 1;
                 continue;
             }
@@ -65,18 +68,42 @@ void Feedback_Motor::load_motor_data_left_foot()
             {
                 update_motor_data_left_foot_flag_ = true;
                 state = 0;
+                update_motor_data_left_foot();
                 break;
             }
         }
     }
-    update_motor_data_left_foot();
 }
 
 void Feedback_Motor::update_motor_data_left_foot()
 {
     if(update_motor_data_left_foot_flag_)
     {
-        //printf("\n data :%d , %d \n",motor_data_left_foot_[0],motor_data_left_foot_[1]);
+        for(int i = 0; i < 6; i++){
+            motor_data_left_foot_[i] = motor_data_left_foot_[i] - datamodule.totalangle_[i+9];
+        }
+        
+        // // if(torque_update_motor_data_left_foot_flag_ == 1){
+        // for(int i = 0; i < 6; i++){
+        //     if(datamodule.Walking_standangle[i+9] > motor_data_left_foot_[i]){
+        //         tmp_lf[i] = datamodule.Walking_standangle[i+9] - motor_data_left_foot_[i];
+        //         datamodule.Calculate_standangle[i] -= tmp_lf[i];
+        //     }
+        //     else{
+        //         tmp_lf[i] = motor_data_left_foot_[i] - datamodule.Walking_standangle[i+9];
+        //         datamodule.Calculate_standangle[i] += tmp_lf[i];
+        //     }
+
+        //     datamodule.totalspeed_[i+9] = datamodule.totalspeed_[i+9];
+        //     datamodule.totalangle_[i+9] = motor_data_left_foot_[i];
+        // }
+        // datamodule.motion_execute_flag_ = true;
+        // // torque_update_motor_data_left_foot_flag_ = 0;
+        // usleep(1000 * 1000); 	//0.5s 
+        // // }
+        // // else{
+
+        // // }
     }
 }
 void Feedback_Motor::load_motor_data_right_foot()
@@ -91,6 +118,7 @@ void Feedback_Motor::load_motor_data_right_foot()
             update_motor_data_right_foot_flag_ = false;
             if(*(uint32_t *)init.p2h_set_hps_read_motor_data_rightfoot_addr)
             {
+                cout << "right foot" << endl;
                 state = 1;
                 continue;
             }
@@ -113,18 +141,261 @@ void Feedback_Motor::load_motor_data_right_foot()
             {
                 update_motor_data_right_foot_flag_ = true;
                 state = 0;
+                update_motor_data_right_foot();
                 break;
             }
         }
     }
-    update_motor_data_right_foot();
 }
 
 void Feedback_Motor::update_motor_data_right_foot()
 {
     if(update_motor_data_right_foot_flag_)
     {
-        //printf("\n data :%d , %d \n",motor_data_right_foot_[0],motor_data_right_foot_[1]);
+        for(int i = 0; i < 6 ; i ++){
+            motor_data_right_foot_[i] = motor_data_right_foot_[i] - datamodule.totalangle_[i+15];
+        }
+        // for(int i = 0; i < 6; i++){
+        //     if(datamodule.Walking_standangle[i+15] > motor_data_right_foot_[i]){
+        //         tmp_rf[i] = datamodule.Walking_standangle[i+15] - motor_data_right_foot_[i];
+        //         datamodule.Calculate_standangle[i+6] -= tmp_rf[i];
+        //     }
+        //     else{
+        //         tmp_rf[i] = motor_data_right_foot_[i] - datamodule.Walking_standangle[i+15];
+        //         datamodule.Calculate_standangle[i+6] += tmp_rf[i];
+        //     }
+        //     datamodule.totalspeed_[i+15] = datamodule.totalspeed_[i+15];
+        //     datamodule.totalangle_[i+15] = motor_data_right_foot_[i];
+        // }
+        // datamodule.motion_execute_flag_ = true;
+        // // torque_update_motor_data_right_foot_flag_ = 0;
+        // usleep(1000 * 1000); 	//0.5s 
+    }
+}
+
+void Feedback_Motor::load_motor_data_left_hand()
+{
+    int state = 0;
+    int count = 0;
+
+    for(;;)
+    {
+        if(state == 0)
+        {
+            update_motor_data_left_hand_flag_ = false;
+            if(*(uint32_t *)init.p2h_set_hps_read_motor_data_lefthand_addr)
+            {
+                state = 1;
+                cout << "left hand" << endl;
+                continue;
+            }
+            else
+            {
+                break;
+            }
+        }
+        else if(state == 1)
+        {
+            if(count <= 3)
+            {
+                motor_data_left_hand_[count] = *(uint32_t *)init.p2h_motor_data_lefthand_addr;
+                count++;
+                *(uint32_t *)init.h2p_read_motor_data_lefthand_pulse_addr = 1;
+				*(uint32_t *)init.h2p_read_motor_data_lefthand_pulse_addr = 0;
+                continue;
+            }
+            else
+            {
+                update_motor_data_left_hand_flag_ = true;
+                state = 0;
+                update_motor_data_left_hand();
+                break;
+            }
+        }
+    }
+}
+
+void Feedback_Motor::update_motor_data_left_hand()
+{
+    if(update_motor_data_left_hand_flag_)
+    {
+        for(int i = 0; i < 4; i++){
+            motor_data_left_hand_[i] = motor_data_left_hand_[i] - datamodule.totalangle_[i];
+            // if(datamodule.Walking_standangle[i+15] > motor_data_right_foot_[i]){
+            //     tmp_rf[i] = datamodule.Walking_standangle[i+15] - motor_data_right_foot_[i];
+            //     datamodule.Calculate_standangle[i+6] -= tmp_rf[i];
+            // }
+            // else{
+            //     tmp_rf[i] = motor_data_right_foot_[i] - datamodule.Walking_standangle[i+15];
+            //     datamodule.Calculate_standangle[i+6] += tmp_rf[i];
+            // }
+            // datamodule.totalspeed_[i] = datamodule.totalspeed_[i];
+            // datamodule.totalangle_[i] = motor_data_left_hand_[i];
+        }
+        // datamodule.motion_execute_flag_ = true;
+        // // torque_update_motor_data_left_hand_flag_ = 0;
+        // usleep(1000 * 1000); 	//0.5s
+    }
+}
+void Feedback_Motor::load_motor_data_right_hand()
+{
+    int state = 0;
+    int count = 0;
+
+    for(;;)
+    {
+        if(state == 0)
+        {
+            update_motor_data_right_hand_flag_ = false;
+            if(*(uint32_t *)init.p2h_set_hps_read_motor_data_righthand_addr)
+            {
+                state = 1;
+                cout << "right hand" << endl;
+                continue;
+            }
+            else
+            {
+                break;
+            }
+        }
+        else if(state == 1)
+        {
+            if(count <= 3)
+            {
+                motor_data_right_hand_[count] = *(uint32_t *)init.p2h_motor_data_righthand_addr;
+                count++;
+                *(uint32_t *)init.h2p_read_motor_data_righthand_pulse_addr = 1;
+				*(uint32_t *)init.h2p_read_motor_data_righthand_pulse_addr = 0;
+                continue;
+            }
+            else
+            {
+                update_motor_data_right_hand_flag_ = true;
+                state = 0;
+                update_motor_data_right_hand();
+                break;
+            }
+        }
+    }
+}
+
+void Feedback_Motor::update_motor_data_right_hand()
+{
+    if(update_motor_data_right_hand_flag_)
+    {
+        for(int i = 0; i < 4; i++){
+            motor_data_right_hand_[i] = motor_data_right_hand_[i] - datamodule.totalangle_[i+4];
+            // if(datamodule.Walking_standangle[i+15] > motor_data_right_foot_[i]){
+            //     tmp_rf[i] = datamodule.Walking_standangle[i+15] - motor_data_right_foot_[i];
+            //     datamodule.Calculate_standangle[i+6] -= tmp_rf[i];
+            // }
+            // else{
+            //     tmp_rf[i] = motor_data_right_foot_[i] - datamodule.Walking_standangle[i+15];
+            //     datamodule.Calculate_standangle[i+6] += tmp_rf[i];
+            // }
+            // datamodule.totalspeed_[i+4] = datamodule.totalspeed_[i+4];
+            // datamodule.totalangle_[i+4] = motor_data_right_hand_[i];
+        }
+        // datamodule.motion_execute_flag_ = true;
+        // // torque_update_motor_data_right_hand_flag_ = 0;
+        // usleep(1000 * 1000); 	//0.5s
+    }
+}
+
+void Feedback_Motor::adjust_left_foot()
+{
+    int state = 0;
+    int count = 0;
+
+    for(;;)
+    {
+        if(state == 0)
+        {
+            update_adjust_left_foot_flag_ = false;
+            if(*(uint32_t *)init.p2h_gait_hps_read_motor_data_lf_addr)
+            {
+                state = 1;
+                continue;
+            }
+            else
+            {
+                break;
+            }
+        }
+        else if(state == 1)
+        {
+            if(count <= 5)
+            {
+                adjust_left_foot_[count] = *(uint32_t *)init.p2h_motor_data_leftfoot_addr;
+                count++;
+                *(uint32_t *)init.h2p_read_motor_data_leftfoot_pulse_addr = 1;
+				*(uint32_t *)init.h2p_read_motor_data_leftfoot_pulse_addr = 0;
+                continue;
+            }
+            else
+            {
+                update_adjust_left_foot_flag_ = true;
+                state = 0;
+                update_adjust_left_foot();
+                break;
+            }
+        }
+    }
+}
+
+void Feedback_Motor::update_adjust_left_foot()
+{
+    if(update_adjust_left_foot_flag_)
+    {
+        // printf("\n data :%d , %d , %d , %d , %d , %d\n",adjust_left_foot_[0],adjust_left_foot_[1],adjust_left_foot_[2],adjust_left_foot_[3],adjust_left_foot_[4], adjust_left_foot_[5]);
+    }
+}
+void Feedback_Motor::adjust_right_foot()
+{
+    int state = 0;
+    int count = 0;
+
+    for(;;)
+    {
+        if(state == 0)
+        {
+            update_adjust_right_foot_flag_ = false;
+            if(*(uint32_t *)init.p2h_gait_hps_read_motor_data_rf_addr)
+            {
+                state = 1;
+                continue;
+            }
+            else
+            {
+                break;
+            }
+        }
+        else if(state == 1)
+        {
+            if(count <= 5)
+            {
+                adjust_right_foot_[count] = *(uint32_t *)init.p2h_motor_data_rightfoot_addr;
+                count++;
+                *(uint32_t *)init.h2p_read_motor_data_rightfoot_pulse_addr = 1;
+				*(uint32_t *)init.h2p_read_motor_data_rightfoot_pulse_addr = 0;
+                continue;
+            }
+            else
+            {
+                update_adjust_right_foot_flag_ = true;
+                state = 0;
+                update_adjust_right_foot();
+                break;
+            }
+        }
+    }
+}
+
+void Feedback_Motor::update_adjust_right_foot()
+{
+    if(update_adjust_right_foot_flag_)
+    {
+        // printf("\n data :%d , %d , %d , %d , %d , %d\n",adjust_right_foot_[0],adjust_right_foot_[1],adjust_right_foot_[2],adjust_right_foot_[3],adjust_right_foot_[4],adjust_right_foot_[5]);
     }
 }
 

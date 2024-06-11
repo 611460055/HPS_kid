@@ -66,7 +66,7 @@ public:
     }
 
     // double wtestComVelocity(double pre_x,double pre_v,double px,double t ,double T);
-    double wComVelocityInit(double x0, double vx0, double px, double t, double T);
+    double wComVelocityInit(double x0, double xt, double px, double t, double T);
     double wComPosition(double x0, double vx0, double px, double t, double T);
     double wFootPosition(const double start, const double length, const double t, const double T, const double T_DSP);
     double wFootPositionRepeat(const double start, const double length, const double t, const double T, const double T_DSP);
@@ -121,10 +121,6 @@ public:
     bool Stepout_flag_X_,Stepout_flag_Y_;
     int Step_Count_;    
     // double test_v0_save;
-    // for new LIPM
-    double C_, D_, S_, a_, b_;
-    double xdi, ydi, xb, yb, vxb, vyb, x_des, y_des;
-    double xd_des, yd_des, point_x, point_y, xi_, yi_, ye_;
 
     bool plot_once_, if_finish_;
     

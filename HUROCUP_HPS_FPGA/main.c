@@ -11,14 +11,13 @@ int main()
 {
 	  
 	int i=0;
-	bool stop_walk = false;
 	sensor.fall_Down_Flag_ = false;
 	sensor.stop_Walk_Flag_ = false;
 	/*---系統初始化---*/ 
 	balance.initialize(30);
 	usleep(1000 * 1000);
 	init.initial_system();
-	// usleep(1000 * 1000);
+	usleep(1000 * 1000);
 	walkinggait.com_z_height = 29.5;
 	walkinggait.stand_height = 23.5;
 	IK.initial_inverse_kinematic();
@@ -46,7 +45,16 @@ int main()
 	while(1)
 	{ 
 		/*---動作串---*/
+		datamodule.stand_button_press();
 		datamodule.load_database();
+		usleep(50 * 10); 	//0.5s
+		if(!walkinggait.locus_flag_)
+		{
+			feedbackmotor.load_motor_data_left_foot();
+			feedbackmotor.load_motor_data_right_foot();
+			feedbackmotor.load_motor_data_left_hand();
+			feedbackmotor.load_motor_data_right_hand();
+		}
 		if(datamodule.motion_execute_flag_)
 		{
 			if(datamodule.stand_flag)
@@ -207,13 +215,13 @@ int main()
 		
 		/*-----------------------------------------*/
 		/*---馬達回授---*/
-		if(read_feedback)
-		{
-			feedbackmotor.load_motor_data_left_foot();
-			feedbackmotor.load_motor_data_right_foot();
-			feedbackmotor.pushData();
-			read_feedback = false;
-		}
+		// if(read_feedback)
+		// {
+		// 	feedbackmotor.adjust_left_foot();
+		// 	feedbackmotor.adjust_right_foot();
+		// 	feedbackmotor.pushData();
+		// 	read_feedback = false;
+		// }
 		/*-------------*/
 		/*舊版上下板平衡控制*/ 
 		// if(parameterinfo->LCFinishFlag  && parameterinfo->LCBalanceOn)

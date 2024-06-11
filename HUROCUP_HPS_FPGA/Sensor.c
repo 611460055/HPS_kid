@@ -1,7 +1,7 @@
 #include "include/Sensor.h"
 
 extern Initial init;
-
+extern Feedback_Motor feedbackmotor;
 SensorDataProcess::SensorDataProcess()
 {
     update_sensor_setting_flag_ = false;
@@ -13,7 +13,6 @@ SensorDataProcess::SensorDataProcess()
     memset(rpy_raw_, 0.0, sizeof(rpy_raw_));
     memset(rpy_offset_, 0.0, sizeof(rpy_offset_));
     memset(sensor_data_to_ipc_, 0, sizeof(sensor_data_to_ipc_));
-    memset(imu_reset_, 0.0, sizeof(imu_reset_));
 }
 
 SensorDataProcess::~SensorDataProcess()
@@ -27,8 +26,9 @@ void SensorDataProcess::sensor_package_generate()
     {
         int i=0;
         int cnt = 0;
-        int press_data_counter = 0;        
-        short sensor_data[11] = {0};
+        int press_data_counter = 0;    
+        int feedbackLF  = 0, feedbackRF  = 0, feedbackLH  = 0, feedbackRH  = 0;    
+        short sensor_data[31] = {0};
 
         for(i=0; i<3; i++)
         {
@@ -55,20 +55,69 @@ void SensorDataProcess::sensor_package_generate()
         press_data_counter = 0;
         for(i = 7;i<11;i++)//right foot press
         {
-            sensor_data[i] = (short)(press_right_[press_data_counter] );
+            sensor_data[i] = (short)(press_right_[press_data_counter]);
+            if(sensor_data[i] < 0)
+            {
+                short tmp = ~(sensor_data[i]) + 1;
+                sensor_data[i] = (0x8000 | (tmp & 0x7FFF));
+            }  
+            press_data_counter++;       
+        }
+
+        for(i = 11;i<17;i++)//left foot feedback
+        {
+            sensor_data[i] = (short)(feedbackmotor.motor_data_left_foot_[feedbackLF] );
+            if(sensor_data[i] < 0)
+            {
+                short tmp = ~(sensor_data[i]) + 1;
+                sensor_data[i] = (0x8000 | (tmp & 0x7FFF));
+            }
+            feedbackLF++;
+        }
+        
+        for(i = 17;i<23;i++)//right foot feedback
+        {
+            sensor_data[i] = (short)(feedbackmotor.motor_data_right_foot_[feedbackRF] );
             if(sensor_data[i] < 0)
             {
                 short tmp = ~(sensor_data[i]) + 1;
                 sensor_data[i] = (0x8000 | (tmp & 0x7FFF));
             }     
-            press_data_counter++;       
+            feedbackRF++;
         }
 
-        for(i=0; i<22; i+=2)
+        for(i = 23;i<27;i++)//left hand feedback
+        {
+            sensor_data[i] = (short)(feedbackmotor.motor_data_left_hand_[feedbackLH] );
+            if(sensor_data[i] < 0)
+            {
+                short tmp = ~(sensor_data[i]) + 1;
+                sensor_data[i] = (0x8000 | (tmp & 0x7FFF));
+            }
+            feedbackLH++;
+        }
+        
+        for(i = 27;i<31;i++)//right hand feedback
+        {
+            sensor_data[i] = (short)(feedbackmotor.motor_data_right_hand_[feedbackRH] );
+            if(sensor_data[i] < 0)
+            {
+                short tmp = ~(sensor_data[i]) + 1;
+                sensor_data[i] = (0x8000 | (tmp & 0x7FFF));
+            }     
+            feedbackRH++;
+        }
+
+        for(i=0; i<70; i+=2)
         {
             sensor_data_to_ipc_[i] = (unsigned char)((sensor_data[cnt] >> 8) & 0xFF);
             sensor_data_to_ipc_[i+1] = (unsigned char)(sensor_data[cnt++] & 0xFF);
+            if(i >= 62){
+                sensor_data_to_ipc_[i] = 0;
+                sensor_data_to_ipc_[i+1] = 0;
+            }
         }
+
         //for fall down
         if(stop_Walk_Flag_ == true)
         {
@@ -85,16 +134,68 @@ void SensorDataProcess::sensor_package_generate()
         {
             stand_status_package_ = 'S';//    0x53        
         }
+        
+        // *((uint32_t *)init.sensor_data_addr) = (0x5354F7 << 8) + sensor_data_to_ipc_[0];
+        // *((uint32_t *)init.sensor_data_addr+(1)) = (sensor_data_to_ipc_[1] << 24) + (sensor_data_to_ipc_[2] << 16) + (sensor_data_to_ipc_[3] << 8) + sensor_data_to_ipc_[4];
+        // *((uint32_t *)init.sensor_data_addr+(2)) = (sensor_data_to_ipc_[5] << 24) + (stand_status_package_ << 16) + (0xFF << 8) + sensor_data_to_ipc_[6];
+        // *((uint32_t *)init.sensor_data_addr+(3)) = (sensor_data_to_ipc_[7] << 24) + (sensor_data_to_ipc_[8] << 16) + (sensor_data_to_ipc_[9] << 8) + sensor_data_to_ipc_[10];
+        // *((uint32_t *)init.sensor_data_addr+(4)) = (sensor_data_to_ipc_[11] << 24) + (sensor_data_to_ipc_[12] << 16) + (sensor_data_to_ipc_[13] << 8) + sensor_data_to_ipc_[14];
+        // *((uint32_t *)init.sensor_data_addr+(5)) = (sensor_data_to_ipc_[15] << 24) + (sensor_data_to_ipc_[16] << 16) + (sensor_data_to_ipc_[17] << 8) + sensor_data_to_ipc_[18];
+        // *((uint32_t *)init.sensor_data_addr+(6)) = (sensor_data_to_ipc_[19] << 24) + (sensor_data_to_ipc_[20] << 16) + (sensor_data_to_ipc_[21] << 8) + sensor_data_to_ipc_[22];
+        // *((uint32_t *)init.sensor_data_addr+(7)) = (sensor_data_to_ipc_[23] << 24) + (sensor_data_to_ipc_[24] << 16) + (sensor_data_to_ipc_[25] << 8) + sensor_data_to_ipc_[26];
+        // *((uint32_t *)init.sensor_data_addr+(8)) = (sensor_data_to_ipc_[27] << 24) + (sensor_data_to_ipc_[28] << 16) + (sensor_data_to_ipc_[29] << 8) + sensor_data_to_ipc_[30];
+        // *((uint32_t *)init.sensor_data_addr+(9)) = (sensor_data_to_ipc_[31] << 24) + (sensor_data_to_ipc_[32] << 16) + (sensor_data_to_ipc_[33] << 8) + sensor_data_to_ipc_[34];
+        // *((uint32_t *)init.sensor_data_addr+(10)) = (sensor_data_to_ipc_[35] << 24) + (sensor_data_to_ipc_[36] << 16) + (sensor_data_to_ipc_[37] << 8) + sensor_data_to_ipc_[38];
+        // *((uint32_t *)init.sensor_data_addr+(11)) = (sensor_data_to_ipc_[39] << 24) + (sensor_data_to_ipc_[40] << 16) + (sensor_data_to_ipc_[41] << 8) + sensor_data_to_ipc_[42];
+        // *((uint32_t *)init.sensor_data_addr+(12)) = (sensor_data_to_ipc_[43] << 24) + (sensor_data_to_ipc_[44] << 16) + (sensor_data_to_ipc_[45] << 8) + 0x45;
+        if(data_flag == 0)
+        {
+            *((uint32_t *)init.sensor_data_addr) = (0x5354F7 << 8) + sensor_data_to_ipc_[0];
+            *((uint32_t *)init.sensor_data_addr+(1)) = (sensor_data_to_ipc_[1] << 24) + (sensor_data_to_ipc_[2] << 16) + (sensor_data_to_ipc_[3] << 8) + sensor_data_to_ipc_[4];
+            *((uint32_t *)init.sensor_data_addr+(2)) = (sensor_data_to_ipc_[5] << 24) + (stand_status_package_ << 16) + (0xFF << 8) + sensor_data_to_ipc_[6];
+            *((uint32_t *)init.sensor_data_addr+(3)) = (sensor_data_to_ipc_[7] << 24) + (sensor_data_to_ipc_[8] << 16) + (sensor_data_to_ipc_[9] << 8) + sensor_data_to_ipc_[10];
+            *((uint32_t *)init.sensor_data_addr+(4)) = (sensor_data_to_ipc_[11] << 24) + (sensor_data_to_ipc_[12] << 16) + (sensor_data_to_ipc_[13] << 8) + sensor_data_to_ipc_[14];
+            *((uint32_t *)init.sensor_data_addr+(5)) = (sensor_data_to_ipc_[15] << 24) + (sensor_data_to_ipc_[16] << 16) + (sensor_data_to_ipc_[17] << 8) + sensor_data_to_ipc_[18];
+            *((uint32_t *)init.sensor_data_addr+(6)) = (sensor_data_to_ipc_[19] << 24) + (sensor_data_to_ipc_[20] << 16) + (sensor_data_to_ipc_[21] << 8) + 0x45;
+            // printf("AA:0x%08X\n",(*(uint32_t *)init.sensor_data_addr));
+            send_sensor_data_to_ipc();
+            data_flag = 1;   
+        }
+        else if(data_flag == 1)
+        {
+            *((uint32_t *)init.sensor_data_addr) = (0x5354F8 << 8) + sensor_data_to_ipc_[22];
+            *((uint32_t *)init.sensor_data_addr+(1)) = (sensor_data_to_ipc_[23] << 24) + (sensor_data_to_ipc_[24] << 16) + (sensor_data_to_ipc_[25] << 8) + sensor_data_to_ipc_[26];
+            *((uint32_t *)init.sensor_data_addr+(2)) = (sensor_data_to_ipc_[27] << 24) + (sensor_data_to_ipc_[28] << 16) + (sensor_data_to_ipc_[29] << 8) + sensor_data_to_ipc_[30];
+            *((uint32_t *)init.sensor_data_addr+(3)) = (sensor_data_to_ipc_[31] << 24) + (sensor_data_to_ipc_[32] << 16) + (sensor_data_to_ipc_[33] << 8) + sensor_data_to_ipc_[34];
+            *((uint32_t *)init.sensor_data_addr+(4)) = (sensor_data_to_ipc_[35] << 24) + (sensor_data_to_ipc_[36] << 16) + (sensor_data_to_ipc_[37] << 8) + sensor_data_to_ipc_[38];
+            *((uint32_t *)init.sensor_data_addr+(5)) = (sensor_data_to_ipc_[39] << 24) + (sensor_data_to_ipc_[40] << 16) + (sensor_data_to_ipc_[41] << 8) + sensor_data_to_ipc_[42];
+            *((uint32_t *)init.sensor_data_addr+(6)) = (sensor_data_to_ipc_[43] << 24) + (sensor_data_to_ipc_[44] << 16) + (sensor_data_to_ipc_[45] << 8) + 0x45;
+            // printf("bb:0x%08X\n",(*(uint32_t *)init.sensor_data_addr));
+            send_sensor_data_to_ipc();
+            data_flag = 2;
+        }
+        else if(data_flag == 2)
+        {
+            *((uint32_t *)init.sensor_data_addr) = (0x5354F0 << 8) + sensor_data_to_ipc_[46];
+            *((uint32_t *)init.sensor_data_addr+(1)) = (sensor_data_to_ipc_[47] << 24) + (sensor_data_to_ipc_[48] << 16) + (sensor_data_to_ipc_[49] << 8) + sensor_data_to_ipc_[50];
+            *((uint32_t *)init.sensor_data_addr+(2)) = (sensor_data_to_ipc_[51] << 24) + (sensor_data_to_ipc_[52] << 16) + (sensor_data_to_ipc_[53] << 8) + sensor_data_to_ipc_[54];
+            *((uint32_t *)init.sensor_data_addr+(3)) = (sensor_data_to_ipc_[55] << 24) + (sensor_data_to_ipc_[56] << 16) + (sensor_data_to_ipc_[57] << 8) + sensor_data_to_ipc_[58];
+            *((uint32_t *)init.sensor_data_addr+(4)) = (sensor_data_to_ipc_[59] << 24) + (sensor_data_to_ipc_[60] << 16) + (sensor_data_to_ipc_[61] << 8) + sensor_data_to_ipc_[62];
+            *((uint32_t *)init.sensor_data_addr+(5)) = (sensor_data_to_ipc_[63] << 24) + (sensor_data_to_ipc_[64] << 16) + (sensor_data_to_ipc_[65] << 8) + sensor_data_to_ipc_[66];
+            *((uint32_t *)init.sensor_data_addr+(6)) = (sensor_data_to_ipc_[67] << 24) + (sensor_data_to_ipc_[68] << 16) + (sensor_data_to_ipc_[69] << 8) + 0x45;
+            send_sensor_data_to_ipc();
+            data_flag = 0;
+        }
+        // *((uint32_t *)init.sensor_data_addr) = (0x5354F8 << 8) + sensor_data_to_ipc_[22];
+        // *((uint32_t *)init.sensor_data_addr+(1)) = (sensor_data_to_ipc_[23] << 24) + (sensor_data_to_ipc_[24] << 16) + (sensor_data_to_ipc_[25] << 8) + sensor_data_to_ipc_[26];
+        // *((uint32_t *)init.sensor_data_addr+(2)) = (sensor_data_to_ipc_[27] << 24) + (sensor_data_to_ipc_[28] << 16) + (sensor_data_to_ipc_[29] << 8) + sensor_data_to_ipc_[30];
+        // *((uint32_t *)init.sensor_data_addr+(3)) = (sensor_data_to_ipc_[31] << 24) + (sensor_data_to_ipc_[32] << 16) + (sensor_data_to_ipc_[33] << 8) + sensor_data_to_ipc_[34];
+        // *((uint32_t *)init.sensor_data_addr+(4)) = (sensor_data_to_ipc_[35] << 24) + (sensor_data_to_ipc_[36] << 16) + (sensor_data_to_ipc_[37] << 8) + sensor_data_to_ipc_[38];
+        // *((uint32_t *)init.sensor_data_addr+(5)) = (sensor_data_to_ipc_[39] << 24) + (sensor_data_to_ipc_[40] << 16) + (sensor_data_to_ipc_[41] << 8) + sensor_data_to_ipc_[42];
+        // *((uint32_t *)init.sensor_data_addr+(6)) = (sensor_data_to_ipc_[43] << 24) + (sensor_data_to_ipc_[44] << 16) + (sensor_data_to_ipc_[45] << 8) + 0x45;
+        // // printf("bb:0x%08X\n",(*(uint32_t *)init.sensor_data_addr));
+        // send_sensor_data_to_ipc();
 
-        *((uint32_t *)init.sensor_data_addr) = (0x5354F7 << 8) + sensor_data_to_ipc_[0];
-        *((uint32_t *)init.sensor_data_addr+(1)) = (sensor_data_to_ipc_[1] << 24) + (sensor_data_to_ipc_[2] << 16) + (sensor_data_to_ipc_[3] << 8) + sensor_data_to_ipc_[4];
-        *((uint32_t *)init.sensor_data_addr+(2)) = (sensor_data_to_ipc_[5] << 24) + (stand_status_package_ << 16) + (0xFF << 8) + sensor_data_to_ipc_[6];
-        *((uint32_t *)init.sensor_data_addr+(3)) = (sensor_data_to_ipc_[7] << 24) + (sensor_data_to_ipc_[8] << 16) + (sensor_data_to_ipc_[9] << 8) + sensor_data_to_ipc_[10];
-        *((uint32_t *)init.sensor_data_addr+(4)) = (sensor_data_to_ipc_[11] << 24) + (sensor_data_to_ipc_[12] << 16) + (sensor_data_to_ipc_[13] << 8) + sensor_data_to_ipc_[14];
-        *((uint32_t *)init.sensor_data_addr+(5)) = (sensor_data_to_ipc_[15] << 24) + (sensor_data_to_ipc_[16] << 16) + (sensor_data_to_ipc_[17] << 8) + sensor_data_to_ipc_[18];
-        *((uint32_t *)init.sensor_data_addr+(6)) = (sensor_data_to_ipc_[19] << 24) + (sensor_data_to_ipc_[20] << 16) + (sensor_data_to_ipc_[21] << 8) + 0x45;
-
-        send_sensor_data_to_ipc();
         get_sensor_setting_flag_ = false;
     }
 }
@@ -242,9 +343,6 @@ void SensorDataProcess::update_sensor_setting()
         else
             sensor_desire_set_[2] = (double)((tmp_parameter & 0x7FFF) / 1000.0);
         
-        if(imu_offset_reset_)
-            memcpy(imu_reset_, sensor_desire_set_, sizeof(sensor_desire_set_));
-            
         if(gain_set_)
             memcpy(imu_desire_, sensor_desire_set_, sizeof(sensor_desire_set_));
         else if(roll_PID_set_)
@@ -263,11 +361,9 @@ void SensorDataProcess::update_sensor_setting()
         get_sensor_setting_flag_ = true;
         if(imu_offset_reset_)
         {
-            for(count=0; count<3; count++)
-            {
-                if(imu_reset_[count] != 0)
-                    rpy_offset_[count] = rpy_raw_[count];
-                imu_reset_[count] = 0;
+            for(count=0; count<3; count++){
+                rpy_offset_[count] = rpy_raw_[count];
+                gyro_offset_[count] = gyro_raw_[count];
             }
             imu_offset_reset_ = false;
         }
@@ -427,11 +523,14 @@ void SensorDataProcess::update_imu()
                 rpy_[count] += 360;
             else if(rpy_[count] > 180)
                 rpy_[count] -= 360;
+            
         }
-
+        // cout << "r: " << rpy_[0]<<endl
+        //      << "p: " << rpy_[1]<<endl
+        //      << "y: " << rpy_[2]<<endl;
         for(count = 0; count <3 ;count++)
         {
-            gyro_[count] = gyro_raw_[count];
+            gyro_[count] = gyro_raw_[count] - gyro_offset_[count];
         }
         for(count = 0; count < 3 ; count++)
         {
