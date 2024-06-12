@@ -11,6 +11,8 @@ extern SensorDataProcess sensor;
 extern Feedback_Motor feedbackmotor;
 extern Locus locus;
 extern Datamodule datamodule;
+extern LegInverseKinematic LIK;
+extern LegTrajectory LT;
 
 Walkinggait::Walkinggait()
 {
@@ -144,42 +146,11 @@ void Walkinggait::update_parameter()
         }
         parameter_cnt = 5;
         parameterinfo->walking_mode = (parameter_[parameter_cnt] & 0xFF000000) >> 24;
-        if(parameterinfo->walking_mode != 9 && parameterinfo->walking_mode != 10)
+        
+        switch (parameterinfo->walking_mode)
         {
-            arr_index = 0;
-            parameter_cnt = 1;
-            // parameterinfo->parameters.X_Swing_Range = tmp_arr[arr_index++];
-            parameterinfo->parameters.com_y_swing = tmp_arr[arr_index++];
-            parameterinfo->parameters.Y_Swing_Range = tmp_arr[arr_index++];
-            parameterinfo->parameters.rightfoot_shift_z = tmp_arr[arr_index++];
-            // parameterinfo->parameters.Z_Swing_Range = tmp_arr[arr_index++];
-            parameterinfo->parameters.Period_T = parameter_[parameter_cnt++] & 0x0000FFFF;
-            parameterinfo->parameters.Period_T2 = (parameter_[parameter_cnt] & 0xFFFF0000) >> 16;
-            parameterinfo->parameters.Sample_Time = (parameter_[parameter_cnt] & 0x0000FF00) >> 8;
-            parameterinfo->parameters.OSC_LockRange = ((double)(parameter_[parameter_cnt++] & 0x000000FF)) / 100;
-
-            arr_index = 6;
-            parameter_cnt = 5;
-            parameterinfo->parameters.BASE_Default_Z = tmp_arr[arr_index++];
-            // parameterinfo->parameters.X_Swing_COM = tmp_arr[arr_index++];
-            // parameterinfo->parameters.Y_Swing_Shift = tmp_arr[arr_index++];
-            parameterinfo->parameters.BASE_LIFT_Z = tmp_arr[arr_index++];
-            parameterinfo->parameters.now_stand_height = tmp_arr[arr_index++];
-            parameterinfo->parameters.now_com_height = tmp_arr[arr_index++];
-            arr_index++;
-            parameterinfo->LCBalanceOn = tmp_arr[arr_index++];
-            parameterinfo->parameters.Sample_Time = parameterinfo->parameters.Period_T/30;
-            if(parameterinfo->parameters.Sample_Time == 0)
-            {
-                motion_delay_ = 30;
-            }
-            else
-            {
-                motion_delay_ = parameterinfo->parameters.Period_T / parameterinfo->parameters.Sample_Time;
-            }     
-        }
-        else
-        {
+        case 9:
+        case 10:
             arr_index = 0;
             parameterinfo->parameters.Y_Swing_Range = tmp_arr[arr_index++];
             parameterinfo->parameters.Period_T      = (parameter_[0] & 0x0000FFFF) + 600;
@@ -200,8 +171,88 @@ void Walkinggait::update_parameter()
             else
             {
                 motion_delay_ = parameterinfo->parameters.Period_T / parameterinfo->parameters.Sample_Time;
-            }      
+            }   
+            break;
+        case 20:    // 手臂直線軌跡規劃
+            arr_index = 0;
+            LT.position(0) = tmp_arr[arr_index++];
+            LT.position(0) += tmp_arr[arr_index++]/100.0;
+            LT.position(1) = tmp_arr[arr_index++];
+            LT.position(1) += tmp_arr[arr_index++]/100.0;
+            LT.position(2) = tmp_arr[arr_index++];
+            LT.position(2) += tmp_arr[arr_index++]/100.0;
+            
+            cout << "Get position." << endl;
+            
+            motion_delay_ = 30;
+            
+            LT.get_position = true;
+            break;
+        case 21:
+            // 當HT.get_position為true時，才可以接收rpy的值
+            if(LT.get_position)
+            {
+                int mode;
+                bool tmp_flag1;
+                bool tmp_flag2;
+                arr_index = 0;
+                LT.rpy_radians(0) = tmp_arr[arr_index++];
+                LT.rpy_radians(0) += tmp_arr[arr_index++]/100.0;
+                LT.rpy_radians(1) = tmp_arr[arr_index++];
+                LT.rpy_radians(1) += tmp_arr[arr_index++]/100.0;
+                LT.rpy_radians(2) = tmp_arr[arr_index++];
+                LT.rpy_radians(2) += tmp_arr[arr_index++]/100.0;
+                mode = tmp_arr[arr_index++];           
+                tmp_flag1 = (tmp_arr[arr_index++] > 0);
+                tmp_flag2 = (tmp_arr[arr_index++] > 0);
+                
+                cout << "Get rpy." << endl;
+                // cout << "Mode = " << mode << endl;
+                // cout << "Left hand = " << tmp_flag1 << endl;
+
+                // 設定收到的參數
+                LT.set_parameter(tmp_flag1);
+                LT.start = true;
+
+                motion_delay_ = 30;
+
+                LT.get_position = false;
+            }
+            break;
+        case 22:
+            LT.initial();        
+        default:
+            arr_index = 0;
+            parameter_cnt = 1;
+            parameterinfo->parameters.com_y_swing = tmp_arr[arr_index++];
+            parameterinfo->parameters.Y_Swing_Range = tmp_arr[arr_index++];
+            parameterinfo->parameters.rightfoot_shift_z = tmp_arr[arr_index++];
+
+            parameterinfo->parameters.Period_T = parameter_[parameter_cnt++] & 0x0000FFFF;
+            parameterinfo->parameters.Period_T2 = (parameter_[parameter_cnt] & 0xFFFF0000) >> 16;
+            parameterinfo->parameters.Sample_Time = (parameter_[parameter_cnt] & 0x0000FF00) >> 8;
+            parameterinfo->parameters.OSC_LockRange = ((double)(parameter_[parameter_cnt++] & 0x000000FF)) / 100;
+
+            arr_index = 6;
+            parameter_cnt = 5;
+            parameterinfo->parameters.BASE_Default_Z = tmp_arr[arr_index++];
+            parameterinfo->parameters.BASE_LIFT_Z = tmp_arr[arr_index++];
+            parameterinfo->parameters.now_stand_height = tmp_arr[arr_index++];
+            parameterinfo->parameters.now_com_height = tmp_arr[arr_index++];
+            arr_index++;
+            parameterinfo->LCBalanceOn = tmp_arr[arr_index++];
+            parameterinfo->parameters.Sample_Time = parameterinfo->parameters.Period_T/30;
+            if(parameterinfo->parameters.Sample_Time == 0)
+            {
+                motion_delay_ = 30;
+            }
+            else
+            {
+                motion_delay_ = parameterinfo->parameters.Period_T / parameterinfo->parameters.Sample_Time;
+            }
+            break;
         }
+
         readIKData();
         get_parameter_flag_ = true;
     }
@@ -1568,6 +1619,7 @@ double WalkingGaitByLIPM::wFootTheta(const double theta, bool reverse, const dou
         return theta;
     else if(t>T*(1-T_DSP/2) && reverse)
         return 0;    
+    return 0;
 }
 double WalkingGaitByLIPM::unit_step(double x)
 {

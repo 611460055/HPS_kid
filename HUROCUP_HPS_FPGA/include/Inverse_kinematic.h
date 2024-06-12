@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include <Eigen/Dense>
 #include <fstream>
 #include <vector>
 #include <map>
@@ -22,8 +23,10 @@
 #include "DataModule.h"
 #include "Rmotor.h"
 #include "PID_Controller.h"
+#include "leg_ik.h"
 /********************************************************/
 
+using namespace Eigen;
 /******************* Define******************************/
 #define PI      3.1415926535897932384626433832795   //pi
 #define PI_2    1.5707963267948966192313216916398   //pi/2
@@ -219,6 +222,7 @@ private:
     double past_delay_time_[21];
     unsigned int output_speed_[21];
     unsigned int output_angle_[21];
+    unsigned int pre_output_angle_[21];
     double rotate_body_l_;
     bool flag_;
     int name_cont_;

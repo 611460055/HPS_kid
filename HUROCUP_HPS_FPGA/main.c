@@ -11,13 +11,14 @@ int main()
 {
 	  
 	int i=0;
+	bool stop_walk = false;
 	sensor.fall_Down_Flag_ = false;
 	sensor.stop_Walk_Flag_ = false;
 	/*---系統初始化---*/ 
 	balance.initialize(30);
 	usleep(1000 * 1000);
 	init.initial_system();
-	usleep(1000 * 1000);
+	// usleep(1000 * 1000);
 	walkinggait.com_z_height = 29.5;
 	walkinggait.stand_height = 23.5;
 	IK.initial_inverse_kinematic();
@@ -45,16 +46,7 @@ int main()
 	while(1)
 	{ 
 		/*---動作串---*/
-		datamodule.stand_button_press();
 		datamodule.load_database();
-		usleep(50 * 10); 	//0.5s
-		if(!walkinggait.locus_flag_)
-		{
-			feedbackmotor.load_motor_data_left_foot();
-			feedbackmotor.load_motor_data_right_foot();
-			feedbackmotor.load_motor_data_left_hand();
-			feedbackmotor.load_motor_data_right_hand();
-		}
 		if(datamodule.motion_execute_flag_)
 		{
 			if(datamodule.stand_flag)
@@ -62,9 +54,11 @@ int main()
 				IK.initial_inverse_kinematic();
 				walkinggait.final_step();
 				locus.get_end_point();  //獲取末端點
+				LIK.stand();
 				IK.calculate_inverse_kinematic(30); //計算逆運動學
 				walkinggait.if_finish_ = false;
 				datamodule.stand_flag = false;
+				cout << "stand" << endl;
 			}
 			datamodule.motion_execute();
 		}
@@ -146,13 +140,22 @@ int main()
 			walkinggait.walking_timer();  
 			walkinggait.pushData();
 
+			if(!walkinggait.locus_flag_ && LT.start)
+			{
+				cout << "Run leg ik !" << endl;
+				locus.get_end_point();
+				IK.calculate_inverse_kinematic(walkinggait.motion_delay_); //計算逆運動學
+				locus.do_motion();
+				LT.start = false;
+			}
+
 			gettimeofday(&walkinggait.timer_start_, NULL);
 			// balance.balance_control();
 		}
 		
 
- 		// printf(" ");
-		// usleep(500 * 1000); 
+ 		printf(" ");
+		usleep(500 * 1000); 
 		if((walkinggait.locus_flag_))
 		{
 				/* COM估測器 測試 */
@@ -200,9 +203,9 @@ int main()
 				balance.balance_control();	// 平衡控制(sensor_set)
 			}
 			// locus.get_cpg_with_offset();  //獲取末端點
-			locus.get_end_point();
-			IK.calculate_inverse_kinematic(walkinggait.motion_delay_); //計算逆運動學
-			locus.do_motion();
+			// locus.get_end_point();
+			// IK.calculate_inverse_kinematic(walkinggait.motion_delay_); //計算逆運動學
+			// locus.do_motion();
 
 
 
@@ -215,13 +218,13 @@ int main()
 		
 		/*-----------------------------------------*/
 		/*---馬達回授---*/
-		// if(read_feedback)
-		// {
-		// 	feedbackmotor.adjust_left_foot();
-		// 	feedbackmotor.adjust_right_foot();
-		// 	feedbackmotor.pushData();
-		// 	read_feedback = false;
-		// }
+		if(read_feedback)
+		{
+			feedbackmotor.load_motor_data_left_foot();
+			feedbackmotor.load_motor_data_right_foot();
+			feedbackmotor.pushData();
+			read_feedback = false;
+		}
 		/*-------------*/
 		/*舊版上下板平衡控制*/ 
 		// if(parameterinfo->LCFinishFlag  && parameterinfo->LCBalanceOn)

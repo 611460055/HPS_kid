@@ -8,14 +8,14 @@ HWLIBS_ROOT = $(SOCEDS_ROOT)/ip/altera/hps/altera_hps/hwlib
 ALTLIB_ROOT = C:/altera/16.0/ip/altera/sopc_builder_ip
 CROSS_COMPILE = arm-linux-gnueabihf-
 NO_WARNING_ALERT = -Wno-unused-variable -Wno-unused-but-set-variable -Wno-sign-compare -Wno-pointer-arith
-CFLAGS = -g -Wall $(NO_WARNING_ALERT) -D$(ALT_DEVICE_FAMILY) -I$(HWLIBS_ROOT)/include/$(ALT_DEVICE_FAMILY)   -I$(HWLIBS_ROOT)/include/ -I$(ALTLIB_ROOT)/altera_avalon_pio/inc -I$(ALTLIB_ROOT)/altera_mp32/HAL/inc/ -IC:/Users/aa/Desktop/test1/kid_v2.7.1/HUROCUP_HPS_FPGA/include
+CFLAGS = -g -Wall $(NO_WARNING_ALERT) -D$(ALT_DEVICE_FAMILY) -I$(HWLIBS_ROOT)/include/$(ALT_DEVICE_FAMILY)   -I$(HWLIBS_ROOT)/include/ -I$(ALTLIB_ROOT)/altera_avalon_pio/inc -I$(ALTLIB_ROOT)/altera_mp32/HAL/inc/ -IC:\Users\ICLAB\Desktop\HPS_kid\HUROCUP_HPS_FPGA\include
 LDFLAGS =  -g -Wall $(NO_WARNING_ALERT)
 CC = $(CROSS_COMPILE)g++ -std=c++11
 ARCH= arm
 LINKMATH= -lm
 
 build: $(TARGET)
-$(TARGET): main.o Initial.o Inverse_kinematic.o DataModule.o Fuzzy_Controller.o kalman.o Parameter_Info.o WalkingCycle.o WalkingTrajectory.o Walkinggait.o Sensor.o Feedback_Control.o DefineDataStruct.o ZMPProcess.o B_Spline.o KickingGait.o MBK_control.o fVector.o matrix.o hand_kinetic_base.o Feedback_Motor.o IMU_base_obs.o
+$(TARGET): main.o Initial.o Inverse_kinematic.o DataModule.o Fuzzy_Controller.o kalman.o Parameter_Info.o WalkingCycle.o WalkingTrajectory.o Walkinggait.o Sensor.o Feedback_Control.o DefineDataStruct.o ZMPProcess.o B_Spline.o KickingGait.o MBK_control.o fVector.o matrix.o hand_kinetic_base.o Feedback_Motor.o IMU_base_obs.o leg_ik.o
 	$(CC) $(LDFLAGS)   $^ -o $@  $(LINKMATH)
 %.o : %.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -40,6 +40,7 @@ $(TARGET): main.o Initial.o Inverse_kinematic.o DataModule.o Fuzzy_Controller.o 
 	$(CC) $(CFLAGS) -c hand_kinetic_base.c
 	$(CC) $(CFLAGS) -c Feedback_Motor.c
 	$(CC) $(CFLAGS) -c IMU_base_obs.c
+	$(CC) $(CFLAGS) -c leg_ik.c
 	
 	
 
