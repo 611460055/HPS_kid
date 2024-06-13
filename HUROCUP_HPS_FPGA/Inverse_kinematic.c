@@ -55,6 +55,7 @@ void Locus::set_point_by_body()
 	Points.Inverse_PointL_Z = COM_HEIGHT - Points.Inverse_Pointbody_Z;
 	Points.Inverse_PiontL_Thta = Points.Inverse_Piontbody_Thta;
 }
+
 void Locus::get_end_point()
 {
 	Points.Inverse_PointR_X 			= walkinggait.end_point_rx_;
@@ -66,6 +67,7 @@ void Locus::get_end_point()
 	Points.Inverse_PiontR_Thta			= walkinggait.end_point_rthta_;
 	Points.Inverse_PiontL_Thta			= walkinggait.end_point_lthta_;
 }
+
 void Locus::get_cpg_with_offset()
 {
 	Points.Inverse_Uncontrol_PointR_X	= parameterinfo->points.IK_Point_RX;
@@ -96,6 +98,7 @@ void Locus::get_cpg_with_offset()
 	// printf("R_X: %f, R_Y: %f, R_Z: %f, R_T: %f\n\n",Points.Inverse_PointR_X, Points.Inverse_PointR_Y, Points.Inverse_PointR_Z, Points.Inverse_PiontR_Thta);
 	// printf("W_STATE = %d\tS_MODE = %d\tL_TIME = %d\n", walking_state_, sensor_mode_, (locus_time_&0xff));
 }
+
 void Locus::calculate_robot_status(){
 
 	//利用末端點的y(身體會往反方向晃)得知此刻機器人重心在哪邊
@@ -205,11 +208,13 @@ InverseKinematic::InverseKinematic()
 	if(map_motor.empty())
 	{
 		map_motor["motor_9"] = temp;
+		map_motor["motor_10"] = temp;
 		map_motor["motor_11"] = temp;
         map_motor["motor_12"] = temp;
         map_motor["motor_13"] = temp;
         map_motor["motor_14"] = temp;
 		map_motor["motor_15"] = temp;
+		map_motor["motor_16"] = temp;
         map_motor["motor_17"] = temp;
         map_motor["motor_18"] = temp;
         map_motor["motor_19"] = temp;
@@ -291,20 +296,20 @@ void InverseKinematic::initial_inverse_kinematic()
 	
 	double Motion_Delay = Parameters.Period_T/Parameters.Sample_Time;           //600 / 24 = 25
 	initial_points();//取得現在馬達刻度
-	initial_points_process();
+	// initial_points_process();
 
-	cout << "Initial Inverse Kinematic" << endl;
+	// cout << "Initial Inverse Kinematic" << endl;
 	LIK.initial_ik();
 
-	Points.Inverse_PointR_X = Points.X_COM + Points.X_Right_foot;               //Parameters.COM_X_Offset + Parameters.R_X_Offset;
-	Points.Inverse_PointR_Y = -Points.Y_COM + Points.Y_Right_foot;
-	Points.Inverse_PointR_Z = Points.Z_COM - Points.Z_Right_foot;
-	Points.Inverse_PiontR_Thta = Points.Right_Thta;                             //-pi/2~pi/2
+	// Points.Inverse_PointR_X = Points.X_COM + Points.X_Right_foot;               //Parameters.COM_X_Offset + Parameters.R_X_Offset;
+	// Points.Inverse_PointR_Y = -Points.Y_COM + Points.Y_Right_foot;
+	// Points.Inverse_PointR_Z = Points.Z_COM - Points.Z_Right_foot;
+	// Points.Inverse_PiontR_Thta = Points.Right_Thta;                             //-pi/2~pi/2
 	
-	Points.Inverse_PointL_X = Points.X_COM + Points.X_Left_foot;
-	Points.Inverse_PointL_Y = -Points.Y_COM + Points.Y_Left_foot;
-	Points.Inverse_PointL_Z = Points.Z_COM - Points.Z_Left_foot; 
-	Points.Inverse_PiontL_Thta = Points.Left_Thta;    
+	// Points.Inverse_PointL_X = Points.X_COM + Points.X_Left_foot;
+	// Points.Inverse_PointL_Y = -Points.Y_COM + Points.Y_Left_foot;
+	// Points.Inverse_PointL_Z = Points.Z_COM - Points.Z_Left_foot; 
+	// Points.Inverse_PiontL_Thta = Points.Left_Thta;    
 	// printf("\nR_X: %f, R_Y: %f, R_Z: %f, R_T: %f\nL_X: %f, L_Y: %f, L_Z: %f, L_T: %f\n\n",Points.Inverse_PointR_X, Points.Inverse_PointR_Y, Points.Inverse_PointR_Z, Points.Inverse_PiontR_Thta, Points.Inverse_PointL_X, Points.Inverse_PointL_Y, Points.Inverse_PointL_Z, Points.Inverse_PiontL_Thta);
 	calculate_inverse_kinematic(Motion_Delay);
 	int i;
@@ -339,7 +344,7 @@ void InverseKinematic::initial_parameters(){
 	Parameters.Phase_Shift = PI;      //-pi~pi
 	Parameters.X_Swing_Range = 1;     //cm
 	Parameters.Y_Swing_Range = 5.5;  //3   //cm
-	Parameters.COM_Height = walkinggait.com_z_height;     //cm//////	21.7 //!!!!!
+	Parameters.COM_Height = LIK.now_com_height;     //cm//////	21.7 //!!!!!
 	Parameters.l1 = 12.5;//10.2;             //cm Upper	10th: 12.5 11st: 10.2 robotcup: 14
 	Parameters.l2 = 12.5;//10.2;             //cm Down	10th: 12.5 11st: 10.4 robotcup: 14
 	//Parameters.R_X_Offset = 2.5;      //cm -5
@@ -368,6 +373,7 @@ void InverseKinematic::initial_parameters(){
 	//--------------Walk_Parameters------------------//
 	Parameters.Push_Rate = 0.40;      //?%
 }
+
 void InverseKinematic::initial_points()
 {
 	int i;
@@ -447,7 +453,7 @@ void InverseKinematic::initial_points()
 #endif
 }
 
-void InverseKinematic::initial_points_process()
+/*void InverseKinematic::initial_points_process()
 {
 	Points.Right_Thta = 0;                                                 //-pi/2~pi/2
 	Points.Left_Thta = 0;                                                  //-pi/2~pi/2
@@ -463,17 +469,17 @@ void InverseKinematic::initial_points_process()
 	Points.Z_Right_foot =  Parameters.R_Z_Offset;                         //cm
 	Points.Z_Left_foot = Parameters.L_Z_Offset;                           //cm
 	Points.Z_COM = Parameters.COM_Height + Parameters.COM_Z_Offset;       //cm//!!!!!!!!
-}
+}*/
 
 void InverseKinematic::calculate_inverse_kinematic(int Motion_Delay)
 {
-    double R_Lyz, L_Lyz, R_Lxyz, L_Lxyz;
+    int i;
+    /*double R_Lyz, L_Lyz, R_Lxyz, L_Lxyz;
     double RX_2, RY_2, RZ_2, LX_2, LY_2, LZ_2;
     double l1_2, l2_2, l1_l2, RL_2, LL_2;
-    int i;
 	// printf("LH = %f, RH = %f\n",Points.Inverse_PointR_Z,Points.Inverse_PointL_Z);
-	//printf("//////////////\nR_X: %f, R_Y: %f, R_Z: %f, R_T: %f\nL_X: %f, L_Y: %f, L_Z: %f, L_T: %f\n\n",Points.Inverse_PointR_X, Points.Inverse_PointR_Y, Points.Inverse_PointR_Z, Points.Inverse_PiontR_Thta, Points.Inverse_PointL_X, Points.Inverse_PointL_Y, Points.Inverse_PointL_Z, Points.Inverse_PiontL_Thta);
-	//usleep(10000);
+	// printf("//////////////\nR_X: %f, R_Y: %f, R_Z: %f, R_T: %f\nL_X: %f, L_Y: %f, L_Z: %f, L_T: %f\n\n",Points.Inverse_PointR_X, Points.Inverse_PointR_Y, Points.Inverse_PointR_Z, Points.Inverse_PiontR_Thta, Points.Inverse_PointL_X, Points.Inverse_PointL_Y, Points.Inverse_PointL_Z, Points.Inverse_PiontL_Thta);
+	// usleep(10000);
 
     RX_2 = Points.Inverse_PointR_X * Points.Inverse_PointR_X;
     RY_2 = Points.Inverse_PointR_Y * Points.Inverse_PointR_Y;
@@ -493,12 +499,12 @@ void InverseKinematic::calculate_inverse_kinematic(int Motion_Delay)
     if(L_Lxyz > (l1_l2))
         L_Lxyz = l1_l2;
     RL_2 = R_Lxyz * R_Lxyz;
-    LL_2 = L_Lxyz * L_Lxyz;
+    LL_2 = L_Lxyz * L_Lxyz;*/
 
 	// 計算腿部逆運動學
 	Vector12d leg_theta;
 	leg_theta = LIK.run();
-	cout << "leg_theta : " << endl << leg_theta << endl;
+	// cout << "leg_theta : " << endl << leg_theta << endl;
 
 	Points.Thta[9] = leg_theta(0);
 	Points.Thta[10] = leg_theta(1);
@@ -512,8 +518,8 @@ void InverseKinematic::calculate_inverse_kinematic(int Motion_Delay)
 	Points.Thta[18] = leg_theta(9);
 	Points.Thta[19] = leg_theta(10);
 	Points.Thta[20] = leg_theta(11);
-/*
-    Points.Thta[9] = Points.Inverse_PiontL_Thta + PI_2;
+
+/*	Points.Thta[9] = Points.Inverse_PiontL_Thta + PI_2;
     if(Points.Inverse_PointL_Y == 0)
     {
         Points.Thta[10] = PI_2;    //pi/2
@@ -592,9 +598,8 @@ void InverseKinematic::calculate_inverse_kinematic(int Motion_Delay)
     if(flag_ ==  0)
         Points.Thta[20] = PI - Points.Thta[16];
     else
-        Points.Thta[20] = PI - Points.Thta[16]-rotate_body_l_;
-	
-*/
+        Points.Thta[20] = PI - Points.Thta[16]-rotate_body_l_;*/
+
 	if(parameterinfo->LCBalanceOn)
 	{
 		// balance.control_after_ik_calculation();
@@ -645,7 +650,7 @@ void InverseKinematic::calculate_inverse_kinematic(int Motion_Delay)
 		{
 			output_angle_[i] = (unsigned int)tmp_angle;
 		}
-		cout << "output_angle_[" << i << "] = " << output_angle_[i] << endl;
+		// cout << "output_angle_[" << i << "] = " << output_angle_[i] << endl;
 
         double different_thta;
         different_thta = fabs( past_thta_[i] - Points.Thta[i]);
@@ -820,12 +825,14 @@ void InverseKinematic::pushData()
 {
 	map_motor.find("motor_9")->second.push_back((double)output_angle_[8]);
 	/*左腳*/
+	map_motor.find("motor_10")->second.push_back((double)output_angle_[9]);
 	map_motor.find("motor_11")->second.push_back((double)output_angle_[10]);
 	map_motor.find("motor_12")->second.push_back((double)output_angle_[11]);
 	map_motor.find("motor_13")->second.push_back((double)output_angle_[12]);
 	map_motor.find("motor_14")->second.push_back((double)output_angle_[13]);
 	map_motor.find("motor_15")->second.push_back((double)output_angle_[14]);
 	/*右腳*/
+	map_motor.find("motor_16")->second.push_back((double)output_angle_[15]);
 	map_motor.find("motor_17")->second.push_back((double)output_angle_[16]);
 	map_motor.find("motor_18")->second.push_back((double)output_angle_[17]);
 	map_motor.find("motor_19")->second.push_back((double)output_angle_[18]);

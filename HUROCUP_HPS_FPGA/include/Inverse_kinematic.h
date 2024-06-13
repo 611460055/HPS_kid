@@ -28,8 +28,8 @@
 
 using namespace Eigen;
 /******************* Define******************************/
-#define PI      3.1415926535897932384626433832795   //pi
-#define PI_2    1.5707963267948966192313216916398   //pi/2
+// #define PI      3.1415926535897932384626433832795   //pi
+// #define PI_2    1.5707963267948966192313216916398   //pi/2
 #define PI_3_2  4.7123889803846898576939650749193   //3*pi/2
 #define PI_3    1.0471975511965977461542144610932   //pi/3
 #define PI_TO_OUTPUT 651.8986469044032953093479120548 //360/(2pi)*4096/360
@@ -56,9 +56,9 @@ using namespace Eigen;
 #define SPEED_TRANS 32.0303030303030303030303030303 // (32767 / 1023)
 //#define Debug_IK
 /********************************************************/
-#define COM_HEIGHT 29.5//28.8//24.3//26.9
-#define Length_Pelvis 9.1//8.7//8.7
-#define Length_Leg 23.5 //17 //20.4
+// #define COM_HEIGHT 29.5//28.8//24.3//26.9
+// #define Length_Pelvis 9//8.7//8.7
+// #define Length_Leg 23.5 //17 //20.4
 
 #define STAND_OFFSET_RX 0//-2.8
 #define STAND_OFFSET_RY 0//-0.3

@@ -7,6 +7,7 @@ extern struct Points_Struct Points;
 extern Locus locus;
 extern SensorDataProcess sensor;
 extern Walkinggait walkinggait;
+extern LegInverseKinematic LIK;
 
 BalanceControl::BalanceControl()
 {
@@ -580,7 +581,7 @@ void BalanceControl::balance_control()
 	}
 	else if(parameterinfo->LCBalanceFlag)
 	{
-		if(parameterinfo->points.IK_Point_LZ < walkinggait.com_z_height)
+		if(parameterinfo->points.IK_Point_LZ < LIK.now_com_height)
 		{
 			parameterinfo->points.IK_Point_LZ += 0.12;
 			parameterinfo->points.IK_Point_RZ += 0.12;
@@ -602,8 +603,8 @@ void BalanceControl::balance_control()
 	{
 		parameterinfo->points.IK_Point_LX = 0;
 		parameterinfo->points.IK_Point_RX = 0;
-		parameterinfo->points.IK_Point_LZ = walkinggait.com_z_height;
-		parameterinfo->points.IK_Point_RZ = walkinggait.com_z_height;
+		parameterinfo->points.IK_Point_LZ = LIK.now_com_height;
+		parameterinfo->points.IK_Point_RZ = LIK.now_com_height;
 		leftfoot_hip_pitch_value.initialize();
 		rightfoot_hip_pitch_value.initialize();
 		CoM_EPx_value.initialize();
@@ -626,7 +627,7 @@ void BalanceControl::balance_control()
 		leftfoot_ankle_pitch_value.control_value_once = PIDleftfoot_ankle_pitch.calculateExpValue(foot_cog_x_)*0.015;//dt = 0.03
 		leftfoot_ankle_pitch_value.control_value_total -= leftfoot_ankle_pitch_value.control_value_once;
 		leftfoot_ankle_pitch_value.control_value_total = PIDleftfoot_ankle_pitch.limitCheck(leftfoot_ankle_pitch_value.control_value_total);
-		leftfoot_ankle_pitch_value.control_value_total = asin(leftfoot_ankle_pitch_value.control_value_total/walkinggait.com_z_height);		
+		leftfoot_ankle_pitch_value.control_value_total = asin(leftfoot_ankle_pitch_value.control_value_total/LIK.now_com_height);		
 		leftfoot_ankle_pitch = leftfoot_ankle_pitch_value.control_value_total;
 		//----------- roll ----------------------
 		leftfoot_hip_roll_value.control_value_once = PIDleftfoot_hip_roll.calculateExpValue(sensor.rpy_[0])*0.03;//dt = 0.03;
@@ -639,7 +640,7 @@ void BalanceControl::balance_control()
 		leftfoot_ankle_roll_value.control_value_once = PIDleftfoot_ankle_roll.calculateExpValue_roll(foot_cog_y_)*0.015;//dt = 0.03;
 		leftfoot_ankle_roll_value.control_value_total -= leftfoot_ankle_roll_value.control_value_once;
 		leftfoot_ankle_roll_value.control_value_total = PIDleftfoot_ankle_roll.limitCheck(leftfoot_ankle_roll_value.control_value_total);
-		leftfoot_ankle_roll_value.control_value_total = asin(leftfoot_ankle_roll_value.control_value_total/walkinggait.com_z_height);				
+		leftfoot_ankle_roll_value.control_value_total = asin(leftfoot_ankle_roll_value.control_value_total/LIK.now_com_height);				
 		leftfoot_ankle_roll = leftfoot_ankle_roll_value.control_value_total;
 
 		//swing
@@ -668,7 +669,7 @@ void BalanceControl::balance_control()
 		rightfoot_ankle_pitch_value.control_value_once = PIDrightfoot_ankle_pitch.calculateExpValue(foot_cog_x_)*0.015;
 		rightfoot_ankle_pitch_value.control_value_total -= rightfoot_ankle_pitch_value.control_value_once;
 		rightfoot_ankle_pitch_value.control_value_total = PIDrightfoot_ankle_pitch.limitCheck(rightfoot_ankle_pitch_value.control_value_total);
-		rightfoot_ankle_pitch_value.control_value_total = asin(rightfoot_ankle_pitch_value.control_value_total/walkinggait.com_z_height);
+		rightfoot_ankle_pitch_value.control_value_total = asin(rightfoot_ankle_pitch_value.control_value_total/LIK.now_com_height);
 		rightfoot_ankle_pitch = rightfoot_ankle_pitch_value.control_value_total;
 		//----------- roll ----------------------
 		rightfoot_hip_roll_value.control_value_once = PIDrightfoot_hip_roll.calculateExpValue(sensor.rpy_[0])*0.015 ;//dt = 0.03;
@@ -681,7 +682,7 @@ void BalanceControl::balance_control()
 		rightfoot_ankle_roll_value.control_value_once = PIDrightfoot_ankle_roll.calculateExpValue_roll(foot_cog_y_)*0.015;//dt = 0.03;
 		rightfoot_ankle_roll_value.control_value_total -= rightfoot_ankle_roll_value.control_value_once;
 		rightfoot_ankle_roll_value.control_value_total = PIDrightfoot_ankle_roll.limitCheck(rightfoot_ankle_roll_value.control_value_total);
-		rightfoot_ankle_roll_value.control_value_total = asin(rightfoot_ankle_roll_value.control_value_total/walkinggait.com_z_height);
+		rightfoot_ankle_roll_value.control_value_total = asin(rightfoot_ankle_roll_value.control_value_total/LIK.now_com_height);
 		rightfoot_ankle_roll = rightfoot_ankle_roll_value.control_value_total;
 
 		//swing

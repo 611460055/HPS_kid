@@ -4,6 +4,12 @@ extern LegInverseKinematic LIK;
 
 LegInverseKinematic::LegInverseKinematic()
 {
+	now_com_height = COM_HEIGHT;	// 現在的com高度
+	now_standing_height = STANDING_HEIGHT;	// 現在的站立高度
+	now_waist_width = WAIST_WIDTH/2;	// 現在的腰寬
+	change_flag = false;			// 改變機器人參數的旗標
+	// cout << "Leg length = " << LEG_LENGTH << endl;
+
 	Vector3d rpy_tmp, pos_tmp;
 
 	// initial狀態下的末端點
@@ -11,17 +17,19 @@ LegInverseKinematic::LegInverseKinematic()
 	rpy_tmp(1) = 0;
 	rpy_tmp(2) = PI_2;
 	pos_tmp(0) = -0;
-	pos_tmp(1) = 4.45;
-	pos_tmp(2) = -32.434;
+	pos_tmp(1) = WAIST_WIDTH/2;
+	pos_tmp(2) = LEG_LENGTH;
 	// 轉換成齊次轉換矩陣
+	// cout << "pos_tmp = " << pos_tmp << endl;
 	left_leg.init_endpoint = calculate_endpoint(rpy_tmp, pos_tmp);
 
 	rpy_tmp(0) = -PI;
 	rpy_tmp(1) = 0;
 	rpy_tmp(2) = PI_2;
 	pos_tmp(0) = -0;
-	pos_tmp(1) = -4.45;
-	pos_tmp(2) = -32.434;
+	pos_tmp(1) = -WAIST_WIDTH/2;
+	pos_tmp(2) = LEG_LENGTH;
+	// cout << "pos_tmp = " << pos_tmp << endl;
 	right_leg.init_endpoint = calculate_endpoint(rpy_tmp, pos_tmp);
 
 	// cout << "left_leg.init_endpoint = "<< endl << left_leg.init_endpoint.matrix() << endl;
@@ -37,8 +45,8 @@ LegInverseKinematic::LegInverseKinematic()
 	rpy_tmp(1) = 0;
 	rpy_tmp(2) = PI_2;
 	pos_tmp(0) = -0;
-	pos_tmp(1) = 4.45;
-	pos_tmp(2) = -23.5;
+	pos_tmp(1) = WAIST_WIDTH/2;
+	pos_tmp(2) = STANDING_HEIGHT;
 	// 轉換成齊次轉換矩陣
 	left_leg.stand_endpoint = calculate_endpoint(rpy_tmp, pos_tmp);
 
@@ -46,8 +54,8 @@ LegInverseKinematic::LegInverseKinematic()
 	rpy_tmp(1) = 0;
 	rpy_tmp(2) = PI_2;
 	pos_tmp(0) = -0;
-	pos_tmp(1) = -4.45;
-	pos_tmp(2) = -23.5;
+	pos_tmp(1) = -WAIST_WIDTH/2;
+	pos_tmp(2) = STANDING_HEIGHT;
 	right_leg.stand_endpoint = calculate_endpoint(rpy_tmp, pos_tmp);
 
 	// 設置左右腿base
@@ -65,17 +73,17 @@ LegInverseKinematic::LegInverseKinematic()
 	theta_min(2) = -PI_2;
 	theta_min(3) = -150*DEGREE_2_PI;
 	theta_min(4) = PI_2;
-	theta_min(5) = -25*DEGREE_2_PI;
+	theta_min(5) = -45*DEGREE_2_PI;
 
 	theta_max(0) = 20*DEGREE_2_PI;
 	theta_max(1) = 135*DEGREE_2_PI;
 	theta_max(2) = PI_2;
 	theta_max(3) = 0;
 	theta_max(4) = 3*PI_2;
-	theta_max(5) = 25*DEGREE_2_PI;
+	theta_max(5) = 45*DEGREE_2_PI;
 	
 	left_leg.ik_error = false;		// 左腿逆運動學錯誤旗標
-	right_leg.ik_error = false;		// 右腿逆運動學錯誤旗標
+	right_leg.ik_error = false;		// 右腿逆運動學錯誤旗標	
 
 	name_cont_ = 0;
 	std::vector<float> temp;
@@ -85,10 +93,14 @@ LegInverseKinematic::LegInverseKinematic()
 		map_lik["l_cal_theta2"] = temp;
 		map_lik["l_cal_theta3"] = temp;
 		map_lik["l_cal_theta4"] = temp;
+		map_lik["l_cal_theta5"] = temp;
+		map_lik["l_cal_theta6"] = temp;
 		map_lik["r_cal_theta1"] = temp;
 		map_lik["r_cal_theta2"] = temp;
 		map_lik["r_cal_theta3"] = temp;
-		map_lik["r_cal_theta4"] = temp;		
+		map_lik["r_cal_theta4"] = temp;	
+		map_lik["r_cal_theta5"] = temp;	
+		map_lik["r_cal_theta6"] = temp;		
 		map_lik["l_ik_error"] = temp;
 		map_lik["r_ik_error"] = temp;
 	}
@@ -104,7 +116,7 @@ void LegInverseKinematic::initial_ik()
 	// 獲取initial狀態下的末端點
 	right_leg.cal_endpoint = right_leg.init_endpoint;
 	left_leg.cal_endpoint = left_leg.init_endpoint;
-	cout << "Get initial point." << endl;
+	// cout << "Get initial point." << endl;
 }
 
 void LegInverseKinematic::after_initial_ik()
@@ -112,7 +124,7 @@ void LegInverseKinematic::after_initial_ik()
 	// initial_inverse_kinematic()後，將cal_endpoint改回now_endpoint
 	right_leg.cal_endpoint = right_leg.now_endpoint;
 	left_leg.cal_endpoint = left_leg.now_endpoint;
-	cout << "After initial point." << endl;
+	// cout << "After initial point." << endl;
 }
 
 Vector12d LegInverseKinematic::run()
@@ -125,6 +137,10 @@ Vector12d LegInverseKinematic::run()
 	// bool r_activities_error = activities_area_check(right_leg.cal_endpoint);
 	bool l_activities_error = false;
 	bool r_activities_error = false;
+	// ***************** //
+	left_leg.ik_error = false;
+	right_leg.ik_error = false;
+	// ***************** //
 
 	// 計算手臂馬達角度
 	if(!l_activities_error)
@@ -141,7 +157,7 @@ Vector12d LegInverseKinematic::run()
 		else
 		{
 			left_leg.ik_error = true;
-			cout << "left hand limit error!" << endl;
+			// cout << "left hand limit error!" << endl;
 		}			
 	}
 	else
@@ -164,7 +180,7 @@ Vector12d LegInverseKinematic::run()
 		else
 		{
 			right_leg.ik_error = true;
-			cout << "right hand limit error!" << endl;
+			// cout << "right hand limit error!" << endl;
 		}			
 	}
 	else
@@ -295,12 +311,12 @@ bool LegInverseKinematic::limit_check(Vector6d theta)
 	{
 		if(theta(i) < theta_min(i))
 		{
-			cout << "theta(" << i << ") min error!" << endl;
+			// cout << "theta(" << i << ") min error!" << endl;
 			return true;
 		}
 		else if(theta(i) > theta_max(i))
 		{
-			cout << "theta(" << i << ") max error!" << endl;
+			// cout << "theta(" << i << ") max error!" << endl;
 			return true;
 		}
 	}
@@ -334,7 +350,38 @@ void LegInverseKinematic::stand()
 	left_leg.cal_endpoint = left_leg.stand_endpoint;
 	left_leg.now_endpoint = left_leg.stand_endpoint;
 
-	cout << "Get stand point." << endl;
+	// cout << "Get stand point." << endl;
+}
+
+void LegInverseKinematic::set_robot_parameter(double com_height, double standing_height, double waist_width)
+{
+	double pre_com_height = now_com_height;
+	double pre_standing_height = now_standing_height-LEG_L2-LEG_L5;
+	double pre_waist_width = now_waist_width;
+	// cout << "Set robot parameter." << endl;
+	// cout << "com_height = " << com_height << endl;
+	// cout << "standing_height = " << standing_height << endl;
+	// cout << "waist_width = " << waist_width << endl;
+
+	if(standing_height > 10 && standing_height < LEG_L3+LEG_L4 && standing_height != pre_standing_height)
+	{
+		now_standing_height = standing_height+LEG_L2+LEG_L5;
+		change_flag = true;
+		// cout << "Now standing height = " << now_standing_height << endl;
+	}
+	if(com_height != pre_com_height && com_height > 0)
+	{
+		now_com_height = com_height;
+		change_flag = true;
+		// cout << "Now com height = " << now_com_height << endl;
+	}
+	if(waist_width != pre_waist_width && waist_width >= WAIST_WIDTH/2)
+	{
+		now_waist_width = waist_width;
+		change_flag = true;
+		// cout << "Now waist width = " << now_waist_width << endl;
+	}
+	// cout << "Change flag = " << change_flag << endl;
 }
 
 void LegInverseKinematic::pushData()
@@ -343,10 +390,14 @@ void LegInverseKinematic::pushData()
 	map_lik["l_cal_theta2"].push_back(left_leg.save_rad(1));
 	map_lik["l_cal_theta3"].push_back(left_leg.save_rad(2));
 	map_lik["l_cal_theta4"].push_back(left_leg.save_rad(3));
+	map_lik["l_cal_theta5"].push_back(left_leg.save_rad(4));
+	map_lik["l_cal_theta6"].push_back(left_leg.save_rad(5));
 	map_lik["r_cal_theta1"].push_back(right_leg.save_rad(0));
 	map_lik["r_cal_theta2"].push_back(right_leg.save_rad(1));
 	map_lik["r_cal_theta3"].push_back(right_leg.save_rad(2));
 	map_lik["r_cal_theta4"].push_back(right_leg.save_rad(3));
+	map_lik["r_cal_theta5"].push_back(right_leg.save_rad(4));
+	map_lik["r_cal_theta6"].push_back(right_leg.save_rad(5));
 	map_lik["l_ik_error"].push_back(left_leg.ik_error);
 	map_lik["r_ik_error"].push_back(right_leg.ik_error);
 }
@@ -429,6 +480,11 @@ LegTrajectory::LegTrajectory()
 	start = false;
 	position << 0, 0, 0;
 	rpy_radians << 0, 0, 0;
+	walk_rm << 0, 1, 0, 1, 0, 0, 0, 0, -1;
+	left_endpoint.translation() << -0, WAIST_WIDTH/2, -STANDING_HEIGHT;
+	left_endpoint.linear() = walk_rm;
+	right_endpoint.translation() << 0, -WAIST_WIDTH/2, -STANDING_HEIGHT;
+	right_endpoint.linear() = walk_rm;
 }
 
 LegTrajectory::~LegTrajectory()
@@ -438,11 +494,13 @@ LegTrajectory::~LegTrajectory()
 
 void LegTrajectory::initial()
 {
+	// cout << "LT initial." << endl;
 	get_position = false;
 	set_speed = false;
 	position << 0, 0, 0;
 	rpy_radians << 0, 0, 0;
-	cout << "LT initial." << endl;
+	left_endpoint.translation() << -0, LIK.now_waist_width, -LIK.now_standing_height;
+	right_endpoint.translation() << -0, -LIK.now_waist_width, -LIK.now_standing_height;
 }
 
 void LegTrajectory::set_parameter(bool left_leg_)
@@ -450,14 +508,38 @@ void LegTrajectory::set_parameter(bool left_leg_)
 	if(left_leg_)
 	{
 		LIK.left_leg.cal_endpoint = LIK.calculate_endpoint(rpy_radians, position);
-		cout << "Run left leg inverse kinematic." << endl
-			 << "cal_endpoint = " << endl << LIK.left_leg.cal_endpoint.matrix() << endl;
+		// cout << "Run left leg inverse kinematic." << endl
+		// 	 << "cal_endpoint = " << endl << LIK.left_leg.cal_endpoint.matrix() << endl;
 	}
 	else
 	{
 		LIK.right_leg.cal_endpoint = LIK.calculate_endpoint(rpy_radians, position);
-		cout << "Run right leg inverse kinematic." << endl
-			 << "cal_endpoint = " << endl << LIK.right_leg.cal_endpoint.matrix() << endl;
+		// cout << "Run right leg inverse kinematic." << endl
+		// 	 << "cal_endpoint = " << endl << LIK.right_leg.cal_endpoint.matrix() << endl;
 	}
 
+}
+
+void LegTrajectory::set_walk_parameter(Vector3d position_, Vector3d rpy_radian_, bool left_)
+{
+	Affine3d walk_matrix;
+	if(left_)
+	{
+		walk_matrix = LIK.calculate_endpoint(rpy_radian_, position_);
+		left_endpoint = walk_matrix;
+		// cout << "Left position = " << endl << position_ << endl;
+	}
+	else
+	{
+		walk_matrix = LIK.calculate_endpoint(rpy_radian_, position_);
+		right_endpoint = walk_matrix;
+		// cout << "Right position = " << endl << position_ << endl;
+	}
+}
+
+void LegTrajectory::walking()
+{
+	// cout << "Walking." << endl;
+	LIK.left_leg.cal_endpoint = left_endpoint;
+	LIK.right_leg.cal_endpoint = right_endpoint;
 }

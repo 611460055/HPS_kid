@@ -19,6 +19,7 @@
 #include "WalkingCycle.h"
 #include "WalkingTrajectory.h"
 #include "KickingGait.h"
+#include "leg_ik.h"
 // #include <std_msgs/String.h>
 
 #define WALKING_INTERVAL 30000.0   //30 ms
@@ -114,7 +115,7 @@ public:
     double vx0_, vy0_, px_, py_, pz_,py_u,px_u;
     double lpx_, rpx_, lpy_, rpy_, lpz_, rpz_, lpt_, rpt_;
     double foot_lift_height, board_height, com_lift_height;
-    double com_z_height, stand_height, per_com_height, pre_stand_height, now_com_height, now_stand_height;
+    // double com_z_height, stand_height, per_com_height, pre_stand_height, now_com_height, now_stand_height;
     int cnt = 0;
     //for stepping
     double Control_Step_length_X_,Control_Step_length_Y_;

@@ -9,7 +9,6 @@ refer to user manual chapter 7 for details about the demo
 
 int main()
 {
-	  
 	int i=0;
 	bool stop_walk = false;
 	sensor.fall_Down_Flag_ = false;
@@ -19,8 +18,6 @@ int main()
 	usleep(1000 * 1000);
 	init.initial_system();
 	// usleep(1000 * 1000);
-	walkinggait.com_z_height = 29.5;
-	walkinggait.stand_height = 23.5;
 	IK.initial_inverse_kinematic();
 	walkinggait.initialize();
 	/*----------------*/
@@ -51,14 +48,14 @@ int main()
 		{
 			if(datamodule.stand_flag)
 			{
+				cout << "stand" << endl;
 				IK.initial_inverse_kinematic();
 				walkinggait.final_step();
-				locus.get_end_point();  //獲取末端點
+				// locus.get_end_point();  //獲取末端點
 				LIK.stand();
 				IK.calculate_inverse_kinematic(30); //計算逆運動學
-				walkinggait.if_finish_ = false;
+				// walkinggait.if_finish_ = false;
 				datamodule.stand_flag = false;
-				cout << "stand" << endl;
 			}
 			datamodule.motion_execute();
 		}
@@ -142,8 +139,8 @@ int main()
 
 			if(!walkinggait.locus_flag_ && LT.start)
 			{
-				cout << "Run leg ik !" << endl;
-				locus.get_end_point();
+				// cout << "Run leg ik !" << endl;
+				// locus.get_end_point();
 				IK.calculate_inverse_kinematic(walkinggait.motion_delay_); //計算逆運動學
 				locus.do_motion();
 				LT.start = false;
@@ -154,8 +151,8 @@ int main()
 		}
 		
 
- 		printf(" ");
-		usleep(500 * 1000); 
+ 		// printf(" ");
+		// usleep(500 * 1000); 
 		if((walkinggait.locus_flag_))
 		{
 				/* COM估測器 測試 */
@@ -165,7 +162,7 @@ int main()
 				WpA_(2) = 0;
 				BpA_(0) = walkinggait.step_point_lx_;
 				BpA_(1) = walkinggait.step_point_ly_;
-				BpA_(2) = -walkinggait.com_z_height;
+				BpA_(2) = -LIK.now_com_height;
 				Theta_(0) = sensor.rpy_[0];
 				Theta_(1) = sensor.rpy_[1];
 				Theta_(2) = walkinggait.theta_;
@@ -176,7 +173,7 @@ int main()
 				WpA_(2) = 0;
 				BpA_(0) = walkinggait.step_point_rx_;
 				BpA_(1) = walkinggait.step_point_ry_;
-				BpA_(2) = -walkinggait.com_z_height;
+				BpA_(2) = -LIK.now_com_height;
 				Theta_(0) = sensor.rpy_[0];
 				Theta_(1) = sensor.rpy_[1];
 				Theta_(2) = walkinggait.theta_;
@@ -202,12 +199,26 @@ int main()
 			{
 				balance.balance_control();	// 平衡控制(sensor_set)
 			}
+
+			Vector3d pos, rpy;
+			pos << walkinggait.end_point_lx_, walkinggait.end_point_ly_, -walkinggait.end_point_lz_;
+			rpy << PI, 0, PI_2-walkinggait.end_point_lthta_;
+			LT.set_walk_parameter(pos, rpy, true);
+			pos << walkinggait.end_point_rx_, walkinggait.end_point_ry_, -walkinggait.end_point_rz_;
+			rpy << PI, 0, PI_2-walkinggait.end_point_rthta_;
+			LT.set_walk_parameter(pos, rpy, false);
+			LT.walking();
+
 			// locus.get_cpg_with_offset();  //獲取末端點
 			// locus.get_end_point();
-			// IK.calculate_inverse_kinematic(walkinggait.motion_delay_); //計算逆運動學
-			// locus.do_motion();
+			IK.calculate_inverse_kinematic(walkinggait.motion_delay_); //計算逆運動學
+			locus.do_motion();
+			
+        	LIK.pushData();
+			IK.pushData();			
 
-
+			if(walkinggait.if_finish_)
+				LT.initial();
 
 			
 			walkinggait.LIPM_flag_ = false;
